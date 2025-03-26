@@ -224,7 +224,7 @@ io.on('connection', (socket) => {
       message,
       readBy: [],
       mentionedUsers: mentionedUsers || [],
-      type: type // กำหนดประเภทข้อความ
+      type: type
     });
 
     await newMessage.save();
@@ -234,10 +234,12 @@ io.on('connection', (socket) => {
       .lean();
 
     if (type === 'group') {
-      io.emit('chat message', populatedMessage); // ส่งข้อความกลุ่ม
+      io.emit('chat message', populatedMessage);
+      io.emit('update last group message', populatedMessage);
     } else if (type === 'private') {
-      io.to(`private_${userId}_${populatedMessage.targetUserId}`).emit('private message', populatedMessage);
-      io.to(`private_${populatedMessage.targetUserId}_${userId}`).emit('private message', populatedMessage);
+      io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
+      io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
+      io.emit('update last private message', populatedMessage);
     }
 
     // แจ้งเตือนผู้ใช้ที่ถูก mention
@@ -272,13 +274,13 @@ io.on('connection', (socket) => {
   socket.on('user in private chat', async ({ userId, targetUserId }) => {
     socket.join(`private_${userId}_${targetUserId}`);
     console.log(`User ${userId} is in private chat with ${targetUserId}`);
-    
+
     // เพิ่มการเก็บสถานะผู้ใช้
     if (!usersInChat.has(userId)) {
       usersInChat.set(userId, new Set());
     }
     usersInChat.get(userId).add(targetUserId);
-  
+
     // อัปเดต readBy เฉพาะผู้ใช้อื่น
     if (usersInChat.has(targetUserId) && usersInChat.get(targetUserId).has(userId)) {
       const unreadMessages = await Chat.find({
@@ -289,12 +291,12 @@ io.on('connection', (socket) => {
         readBy: { $ne: userId },
         type: 'private',
       });
-  
+
       unreadMessages.forEach(async (msg) => {
         if (msg.userId.toString() !== userId) { // กรองข้อความที่ผู้ส่งไม่ควรอ่าน
           msg.readBy.push(userId);
           await msg.save();
-  
+
           io.to(`private_${targetUserId}_${userId}`).emit('private message read', {
             messageId: msg._id.toString(),
             readByCount: msg.readBy.length,
@@ -303,15 +305,15 @@ io.on('connection', (socket) => {
       });
     }
   });
-  
-  
-  
+
+
+
 
   // เมื่อผู้ใช้ออกจากหน้าแชทส่วนตัว
   socket.on('user left private chat', ({ userId, targetUserId }) => {
     socket.leave(`private_${userId}_${targetUserId}`);
     console.log(`User ${userId} left private chat with ${targetUserId}`);
-  
+
     if (usersInChat.has(userId)) {
       usersInChat.get(userId).delete(targetUserId);
       if (usersInChat.get(userId).size === 0) {
@@ -319,7 +321,7 @@ io.on('connection', (socket) => {
       }
     }
   });
-  
+
 
   // เมื่อมีข้อความส่วนตัวใหม่
   socket.on('send private message', async ({ spaceId, message, userId, targetUserId }) => {

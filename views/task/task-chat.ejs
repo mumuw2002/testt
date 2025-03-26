@@ -1,4 +1,3 @@
-
 <script src="/socket.io/socket.io.js"></script>
 <style>
   body {
@@ -265,6 +264,14 @@
     max-height: 410px;
     overflow-y: scroll;
   }
+
+  .nameconuser .conuser {
+    width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* เพิ่มบรรทัดนี้เพื่อป้องกันการขึ้นบรรทัดใหม่ */
+  }
 </style>
 </head>
 
@@ -279,34 +286,7 @@
           </div>
           <div class="all-chat">
             <ul>
-              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>">
-                <a href="/space/item/<%= spaces._id %>/chat">
-                  <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
-                  <div class="conmessage">
-                    <div class="nameconuser">
-                      <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
-                      </div>
-                      <div class="conuser">
-                        <% if (lastGroupMessage) { %>
-                          <%= lastGroupMessage.message %>
-                            <% } else { %>
-                              ไม่มีข้อความล่าสุด
-                              <% } %>
-                      </div>
-                    </div>
-                    <div class="timenotimessage">
-                      <div class="timemessage">
-                        <% if (lastGroupMessage) { %>
-                          <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
-                            <% } else { %>
-                              <%= formatTime(new Date()) %>
-                                <% } %>
-                      </div>
-                      <div class="notimesaage">123</div>
-                    </div>
-                  </div>
-                </a>
-              </li>
+
               <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>">
                 <a href="/space/item/<%= spaces._id %>/chat">
                   <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
@@ -436,6 +416,7 @@
 
     </div>
 
+
     <script>
       // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
       function formatTime(date) {
@@ -564,21 +545,18 @@
 
         // กำหนดเนื้อหาของข้อความ
         messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
-<img src="${msg.userId.profileImage}" alt="User" class="avatar">
-<div class="message-bubble">
-<strong>${msg.userId.firstName} ${msg.userId.lastName}:</strong> ${msg.message}
-<div class="message-time">${formatTime(messageDate)}</div>
-</div>
-` : `
-<div class="message-bubble">
-${msg.message}
-<div class="message-time">
-${formatTime(messageDate)}
-<span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
-</div>
-</div>
-`;
-
+        <img src="${msg.userId.profileImage}" alt="User" class="avatar">
+        <div class="message-bubble">
+          <strong>${msg.userId.firstName} ${msg.userId.lastName}:</strong> ${msg.message}
+          <div class="message-time">${formatTime(messageDate)}</div>
+          </div>
+          ` : `
+          <div class="message-bubble">${msg.message}
+            <div class="message-time">${formatTime(messageDate)}
+              <span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
+            </div>
+          </div>
+          `;
         // เพิ่มข้อความใหม่เข้าไปใน container
         messagesContainer.appendChild(messageElement);
         if (!userScrolledUp) {
@@ -720,7 +698,8 @@ ${formatTime(messageDate)}
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               message,
-              mentionedUsers: mentionedUserIds // ส่ง userid ที่ถูก mention ไปยังเซิร์ฟเวอร์
+              mentionedUsers: mentionedUserIds, // ส่ง userid ที่ถูก mention ไปยังเซิร์ฟเวอร์
+              type: 'group'
             }),
           });
           if (response.ok) {
@@ -768,6 +747,43 @@ ${formatTime(messageDate)}
               }
             }
           }
+        }
+      });
+    </script>
+
+    <script>
+      // อัปเดตข้อความล่าสุดของแชทกลุ่ม
+      socket.on('update last group message', (message) => {
+        console.log('Received group message update:', message);
+        const groupChatElement = document.querySelector('li.active .conuser');
+        const groupTimeElement = document.querySelector('li.active .timemessage');
+
+        if (groupChatElement) {
+          groupChatElement.textContent = message.message || 'ไม่มีข้อความล่าสุด';
+        }
+        if (groupTimeElement) {
+          groupTimeElement.textContent = formatTime(new Date(message.createdAt));
+        }
+      });
+
+      // อัปเดตข้อความล่าสุดของแชทส่วนตัว
+      socket.on('update last private message', (message) => {
+        console.log('Received private message update:', message);
+
+        // หา userId ของผู้สนทนาด้วย (ไม่ใช่ผู้ส่งข้อความปัจจุบัน)
+        const otherUserId = message.userId._id.toString() === '<%= user._id %>'
+          ? message.targetUserId._id.toString()
+          : message.userId._id.toString();
+
+        // หา element ที่เกี่ยวข้อง
+        const privateChatElement = document.querySelector(`a[href*="/chat/private/${otherUserId}"] .conuser`);
+        const privateTimeElement = document.querySelector(`a[href*="/chat/private/${otherUserId}"] .timemessage`);
+
+        if (privateChatElement) {
+          privateChatElement.textContent = message.message || '';
+        }
+        if (privateTimeElement) {
+          privateTimeElement.textContent = formatTime(new Date(message.createdAt));
         }
       });
     </script>

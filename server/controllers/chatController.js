@@ -133,14 +133,33 @@ exports.postMessage = async (req, res) => {
     const io = req.app.get('io');
 
     if (type === 'group') {
-      io.emit('chat message', populatedMessage); // ส่งข้อความกลุ่ม
-      io.emit('update last group message', populatedMessage); // อัปเดตข้อความล่าสุดของแชทกลุ่ม
+      io.emit('chat message', populatedMessage);
+      io.emit('update last group message', {
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        spaceId: populatedMessage.spaceId
+      });
     } else if (type === 'private') {
       io.to(`private_${userId}_${populatedMessage.targetUserId}`).emit('private message', populatedMessage);
       io.to(`private_${populatedMessage.targetUserId}_${userId}`).emit('private message', populatedMessage);
-      io.emit('update last private message', populatedMessage); // อัปเดตข้อความล่าสุดของแชทส่วนตัว
+      
+      // ส่งข้อมูลที่ครบถ้วนสำหรับการอัปเดต
+      io.emit('update last private message', {
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        userId: {
+          _id: populatedMessage.userId._id.toString(),
+          firstName: populatedMessage.userId.firstName,
+          lastName: populatedMessage.userId.lastName
+        },
+        targetUserId: {
+          _id: populatedMessage.targetUserId._id.toString(),
+          firstName: populatedMessage.targetUserId.firstName,
+          lastName: populatedMessage.targetUserId.lastName
+        }
+      });
     }
-
+    
     // แจ้งเตือนผู้ใช้ที่ถูก mention
     if (populatedMessage.mentionedUsers.length > 0) {
       populatedMessage.mentionedUsers.forEach(user => {
