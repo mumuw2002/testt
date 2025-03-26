@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>สมัครสมาชิก</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/css/loginCss/register.css" />
+</head>
+
+<body>
+  <div class="warpper">
+
+    <form id="registerForm" action="/google-register" method="POST">
+      <input type="hidden" name="googleEmail" value="<%= googleEmail %>" />
+      <input type="hidden" name="googleId" value="<%= googleId %>" />
+    <input type="hidden" name="profileImage" value="<%= profileImage %>" />
+    
+      <h1 class="title">สมัครสมาชิก</h1>
+
+      <div class="input-box">
+        <span class="span-text">ชื่อ:</span>
+        <input type="text" id="firstName" name="firstName" placeholder="ชื่อผู้ใช้" required />
+        <i class="fa fa-user"></i>
+      </div>
+
+      <div class="input-box">
+        <span class="span-text">นามสกุล:</span>
+        <input type="text" id="lastName" name="lastName" placeholder="ชื่อผู้ใช้" required />
+        <i class="fa fa-user"></i>
+      </div>
+
+      <div class="input-box">
+        <span class="span-text">อีเมล:</span>
+        <input type="email" name="googleEmail" value="<%= googleEmail %>" readonly />
+        <i class="fa fa-envelope"></i>
+      </div>
+
+      <div class="input-box">
+        <span class="span-text">รหัสผ่าน</span>
+        <input type="text" id="password" name="password" placeholder="รหัสผ่าน" equired />
+        <i class="fa fa-user"></i>
+      </div>
+
+      <input type="submit" class="btn" value="เข้าสู่ระบบ" />
+    </form>
+  </div>
+
+  <script src="/script/log-js/register.js"></script>
+</body>
+
+</html>

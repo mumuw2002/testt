@@ -1,0 +1,268 @@
+body {
+    background-color: #f8f9fd;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.wrapper {
+    width: 100%;
+}
+.formWrap{
+    width: 100%;
+    height: 68vh;
+    overflow-y: scroll;
+}
+.formcenter{
+    width: 60%;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px 50px;
+}
+h1 {
+    font-size: 29px;
+    color: #172b4d;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sub-form {
+    font-size: 14px;
+    font-weight: 300;
+    color: gray;
+}
+
+.selected-members {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.member-tag {
+    background-color: #F1F2F4;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.member-tag i {
+    cursor: pointer;
+    color: red;
+    margin-left: 10px;
+    opacity: 0.5;
+}
+
+.member-tag i:hover {
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.member-tag img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 5px;
+}
+
+.note {
+    font-size: 14px;
+    color: gray;
+    font-weight: 300;
+}
+
+.form {
+    width: 100%;
+}
+
+.input {
+    margin: 30px 0;
+    width: 50%;
+}
+
+.input #SpaceName {
+    height: 40px;
+    border: 1.5px solid #8590a2;
+    border-radius: 5px;
+    padding: 5px 20px;
+}
+
+.input label,
+#assignMemberText {
+    font-size: 16px;
+    font-weight: 400;
+    color: #44546F;
+    margin-bottom: 10px;
+}
+
+.input #SpaceName::placeholder,
+.input #SpaceDescription::placeholder {
+    color: var(--light);
+    font-weight: 300;
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+
+.input #SpaceDescription {
+    height: 100px;
+    border: 1.5px solid #8590a2;
+    border-radius: 5px;
+    padding: 10px 20px;
+    resize: none;
+}
+
+.input #SpaceDescription:focus,
+.input #SpaceName:focus {
+    outline: none;
+    box-shadow: none;
+    border: 2px solid #5C54E5;
+}
+
+#detailInput {
+    display: flex;
+    flex-direction: column;
+}
+
+.memberSelect {
+    display: flex;
+    flex-direction: column;
+
+    #searchMemberInput {
+        padding: 0 20px;
+        border: 1.5px solid #8590a2;
+        height: 40px;
+        border-radius: 5px;
+        position: relative;
+    }
+
+    #searchMemberInput::placeholder {
+        color: var(--light);
+        font-weight: 300;
+        font-size: 14px;
+        opacity: 0.7;
+    }
+
+    #searchResultsDropdown {
+        position: absolute;
+        width: 390px;
+        top: 45px;
+        height: 200px;
+        overflow-y: scroll;
+        box-shadow: 0px 8px 12px #091E4226, 0 4px 11px rgba(9, 30, 66, 0.13);
+        z-index: 1000;
+    }
+
+    .dropdown-menu {
+        li {
+            padding: 15px 25px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            border-bottom: 1px solid #e9ebef;
+            cursor: pointer;
+        }
+
+        li:hover {
+            background-color: #e4e9f6;
+            transition: 0.3s;
+        }
+
+        img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        #userEmail {
+            display: flex;
+            flex-direction: column;
+            margin-left: 15px;
+
+            p {
+                font-size: 14px;
+                font-weight: 300;
+            }
+        }
+    }
+}
+#memberName{
+    font-size: 16px;
+    margin-left: 15px;
+}
+#memberName p{
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: 300;
+}
+
+.all-btn {
+    border-top: 2px solid var(--line);
+    padding: 10px 0;
+    display: flex;
+    justify-content: end;
+
+    #addBtn {
+        background-color: var(--btn);
+        color: white;
+        padding: 10px 30px;
+        border: none;
+        border-radius: 5px;
+        opacity: 0.7;
+    }
+
+    #addBtn:hover {
+        opacity: 1;
+        transition: 0.3s;
+        cursor: pointer;
+        background-color: var(--btn);
+    }
+
+    #backBtn {
+        opacity: 0.5;
+        background-color: #F1F2F4;
+        color: #1C2A4B;
+        padding: 10px 30px;
+        border: none;
+        border-radius: 5px;
+        margin-right: 15px;
+    }
+
+    #backBtn:hover {
+        opacity: 1;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+}
+
+#enableDueDate{
+    width: 15px;
+    height: 15px;
+    opacity: 1;
+}
+.dateLabel{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    .dateLa{
+        margin-bottom: 0;
+    }
+}
+
+.dateCount{
+    font-size: 14px;
+    font-weight: 300;
+    margin-top: 5px;
+    color: gray;
+}
+#diffDays{
+    font-weight: 400;
+    color: #172b4d;
+}

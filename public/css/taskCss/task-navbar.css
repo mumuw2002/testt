@@ -1,0 +1,103 @@
+.topNavlink{
+    margin-left: 70px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+.projectTop{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 30px 15px 30px;
+    gap: 5px;
+    
+    .nameInfo{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+
+        #projectName{
+            font-size: 2em;
+            font-weight: 400;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        img{
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        .editableInput{
+            height: 40px;
+            width: 200px!important;
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 0 15px;
+        }
+    }
+
+    .setting{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        border: ;
+
+        p{
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+    }
+}
+.topNavlink .navi-tabs {
+    color: black;
+}
+
+.topNavlink .navi-tabs .nav-link {
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.topNavlink .navi-tabs .top-item-nav.active {
+    color: var(--btn);
+    border-bottom: 4px solid var(--btn);
+    border-radius: 10px 10px 0 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+.topNavlink .navi-tabs .top-item-nav.active:hover{
+    background-color: transparent;
+}
+
+.top-item-nav{
+    position: relative;
+    height: 42px;
+    padding-bottom: 25px;
+    border-radius: 5px;
+    background-color: transparent;
+}
+
+.top-item-nav:hover{
+    background-color: var(--btn);
+    border-radius: 5px;
+    color: white;
+}
+
+
+.topNavlink .nav-items:hover::after {
+    display: none;
+}
+
+.navi-tabs {
+    padding-left: 30px;
+    margin-top: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    border-bottom: 2px solid #dee2e6;
+}

@@ -1,0 +1,246 @@
+<head>
+    <link rel="stylesheet" href="/css/taskCss/boardPage.css" />
+</head>
+
+<body>
+    <div class="contant">
+        <%- include('../task/task_component/task-navbar.ejs') %>
+
+        <div class="topBoard">
+            <div class="addleft">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="filterMemberInput" placeholder="ค้นหาสมาชิกในพื้นที่" onkeyup="filterMembers()">
+            </div>
+            <a href="#" class="link" id="new-task-btn">
+                <i class='bx bx-task'></i> + เพิ่มงานใหม่
+            </a>
+        </div>
+    </div>
+
+    <div class="boardWrap">
+        <div class="board">
+            <% statuses.forEach(status => { %>
+                <div class="column" data-status="<%= status.category %>">
+                    <div class="status" id="statusHeader" style="
+                        <% if (status.category === 'toDo') { %>
+                            color: #fff;
+                            background-color: #44546f;
+                        <% } else if (status.category === 'inProgress') { %>
+                            color: #fff;
+                            background-color: #0880ea;
+                        <% } else if (status.category === 'fix') { %>
+                            color: #fff;
+                            background-color: #F93827;
+                        <% } else if (status.category === 'finished') { %>
+                            color: #fff;
+                            background-color: #299764;
+                        <% } %> ">
+                        <p>
+                            <%= status.name %>
+                            <span class="span count" data-status-count="<%= status.category %>">
+                                <%= tasksByStatus[status.name]?.length || 0 %>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="itemStatus">
+                        <ul id="tasks-<%= status.category %>">
+                            <% (tasksByStatus[status.name] || []).forEach(task => { %>
+                                <li class="task task-item" data-id="<%= task._id %>" data-space-id="<%= spaces._id %>" draggable="true">
+                                    <a href="/task/<%= task._id %>/detail?spaceId=<%= spaces._id %>" draggable="false" style="text-decoration: none; color: inherit;">
+                                        <div class="firstSec">
+                                            <div class="priority">
+                                                <% if (task.taskPriority === 'urgent') { %>
+                                                    <div class="PrioIcon" data-label="ด่วน">
+                                                        <i class="fa-solid fa-angles-up" style="color: #ff0000;"></i>
+                                                    </div>
+                                                <% } else if (task.taskPriority === 'normal') { %>
+                                                    <div class="PrioIcon" data-label="ปกติ">
+                                                        <i class="fa-solid fa-grip-lines" style="color: #ffcc00;"></i>
+                                                    </div>
+                                                <% } else if (task.taskPriority === 'low') { %>
+                                                    <div class="PrioIcon" data-label="ต่ำ">
+                                                        <i class="fa-solid fa-angle-down" style="color: #2562F6;"></i>
+                                                    </div>
+                                                <% } %>
+                                            </div>
+                                            <div class="taskname"><%= task.taskName %></div>
+                                        </div>
+                                        <div class="assigned-users">
+                                            <% if (task.assigneeProgress && task.assigneeProgress.length > 0) { %>
+                                                <h1 class="progressText">ปริมานงานย่อย</h1>
+                                            <% } %>
+                                            <% (task.assigneeProgress || []).forEach(progress => { %>
+                                                <div class="assignee-progress">
+                                                    <img src="<%= progress.assignee?.profileImage || '/public/img/profileImage/userDefalt.jpg' %>"
+                                                        alt="<%= progress.assignee?.username || 'Unknown' %>"
+                                                        style="width: 30px; height: 30px; border-radius: 50%;"
+                                                        onerror="this.onerror=null; this.src='/public/img/profileImage/userDefalt.jpg';">
+                                                    <div class="progress-container">
+                                                        <div class="progress-bar"
+                                                            style="width: <%= progress.percentage %>%;"></div>
+                                                    </div>
+                                                    <span class="progress-text">
+                                                        <%= progress.percentage %>% (<%= progress.completed %> / <%= progress.total %>)
+                                                    </span>
+                                                </div>
+                                            <% }) %>
+                                        </div>
+                                    </a>
+                                    <div class="thSection">
+                                        <div class="thCon">
+                                            <% if (!(task.assigneeProgress && task.assigneeProgress.length > 0)) { %>
+                                                <div class="assignedPro">
+                                                    <% task.assignedUsers.forEach(user => { %>
+                                                        <div class="userProfile">
+                                                            <img src="<%= user.profileImage || '/public/img/profileImage/userDefalt.jpg' %>"
+                                                                alt="<%= user.username || 'Unknown' %>" style="width: 30px; height: 30px; border-radius: 50%;">
+                                                        </div>
+                                                    <% }) %>
+                                                </div>
+                                            <% } %>
+                                            <div class="task-due-date">
+                                                <i class="fa fa-calendar"></i>
+                                                <span>
+                                                    <%= task.dueDate ? moment(task.dueDate).format("D MMM") : 'No Due Date' %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="delSec">
+                                            <i class="fa-solid fa-trash-can deleteTask" id="deleteTask"
+                                            onclick="confirmDeleteTask('<%= task._id %>', '<%= spaces._id %>')"></i>
+                                        </div>
+                                    </div>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    </div>
+    
+                    <!-- Add Task Form under the status -->
+                    <div class="addUnder">
+                        <div class="triggerAdd" onclick="toggleForm(this)">
+                            + เพิ่มงาน
+                        </div>
+                        <form action="/addTask_board" method="POST" class="add-task-form" style="display: none;" onsubmit="return submitForm(event)">
+                            <input type="hidden" name="spaceId" value="<%= spaces._id %>">
+                            <input type="hidden" name="statusId" value="<%= status._id %>">
+                            <input type="text" name="taskName" placeholder="ใส่ชื่องาน" required id="underInput">
+                            <button type="submit" style="display: none;">เพิ่มงาน</button> <!-- Button is hidden but still exists for form submission -->
+                        </form>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    
+
+
+    <!-- <div class="addStatus">
+        <h1>Create status</h1>
+        <form action="/addStatus" method="POST">
+            <div class="form-group">
+                <label for="statusName">status Name</label>
+                <input type="text" id="statusName" name="statusName" placeholder="Status name" required />
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <div class="category-section">
+                    <div class="category-toggle" id="categoryToggle">
+                        <span id="currentCategory">To Do Status</span> 
+                        <i class="bx bx-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-category" id="categoryDropdown" style="display: none;">
+                        <div class="category-option" data-category="toDo">To Do Status</div>
+                        <div class="category-option" data-category="inProgress">In Progress Status</div>
+                        <div class="category-option" data-category="finished">Finished Status</div>
+                    </div>
+                </div>
+                <span>Categories group multiple statuses of the same kind</span>
+            </div>
+            
+            <input type="hidden" name="spaceId" id="spaceId" value="<%= spaces._id %>" />
+            <input type="hidden" name="category" id="category" value="toDo" />
+            
+            <button type="button" onclick="clearFields()">Cancel</button>
+            <button type="submit">Create</button>
+        </form>
+    </div> -->
+
+
+    <script>
+        function toggleForm(triggerElement) {
+            const form = triggerElement.nextElementSibling; // The form is the next sibling element
+            const triggerAdd = triggerElement; // This is the div we clicked on
+    
+            // Toggle the form visibility
+            if (form.style.display === "none") {
+                form.style.display = "block";
+                triggerAdd.style.display = "none"; // Hide the "+ เพิ่มงาน" text
+            } else {
+                form.style.display = "none"; // Hide the form if already visible
+                triggerAdd.style.display = "block"; // Show the "+ เพิ่มงาน" text
+            }
+        }
+    
+        // Submit the form when the Enter key is pressed
+        function submitForm(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevents the default form submission
+                event.target.submit();  // Manually submit the form
+            }
+        }
+        
+        // Prevent Enter key submission while in the input field
+        const inputField = document.querySelector('input[name="taskName"]');
+        inputField.addEventListener('keydown', function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                inputField.form.submit(); // Submit the form when Enter is pressed
+            }
+        });
+        
+        function toggleTagDropdown(taskId) {
+            const dropdown = document.getElementById(`tag-dropdown-${taskId}`);
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+        
+        function getRandomPastelColor() {
+            const hue = Math.floor(Math.random() * 360);
+            const pastel = `hsl(${hue}, 100%, 85%)`;
+            return pastel;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => {
+                tag.style.backgroundColor = getRandomPastelColor();
+            });
+        
+            const categoryToggle = document.querySelector('#categoryToggle');
+            const categoryDropdown = document.querySelector('#categoryDropdown');
+            const currentCategory = document.querySelector('#currentCategory');
+            const categoryInput = document.querySelector('#category');
+        
+            categoryToggle.addEventListener('click', function () {
+                categoryDropdown.style.display = categoryDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+        
+            categoryDropdown.addEventListener('click', function (event) {
+                const selectedOption = event.target.closest('.category-option');
+                if (selectedOption) {
+                    const selectedCategory = selectedOption.getAttribute('data-category');
+                    currentCategory.textContent = selectedOption.textContent;
+                    categoryInput.value = selectedCategory;
+                    categoryDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+    <%- include('../task/task_component/board_addPopup.ejs') %>
+    <script src="/script/taskScript/task-board.js"></script>
+</body>

@@ -1,0 +1,753 @@
+<link rel="stylesheet" href="/css/taskCss/task-dashboard.css" />
+<div class="contentWrapper">
+  <%- include('../task/task_component/task-navbar.ejs') %>
+    
+  <div class="content">
+    <div class="welcomeText">
+      <div class="toptext">
+        <h1>สวัสดีตอนบ่าย, <%= user.username %></h1>
+        <p>☀️ คุณสามารถดูสรุปสถานะงาน ลำดับความสำคัญ ปริมาณงาน และอื่นๆ ได้ที่นี่</p>
+      </div>
+
+      <div class="filterData">
+        <div class="datePicker">
+          <i class='bx bx-filter filterIcon'></i>
+          <select name="filterSelect" id="filter">
+            <option value="" disabled selected><%= selectedPeriod %></option>
+            <option value="today">วันนี้</option>
+            <option value="7day">7 วันที่ผ่านมา</option>
+            <option value="1month">1 เดือนที่ผ่านมา</option>
+            <option value="sinceCreate">ทั้งหมด</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="countSection">
+      <div class="countCard" id="finishedTasksCard">
+        <div class="icon" style="background-color: #73D26C;">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="countText">
+          <p class="count">
+            <span class="countNumber" style="color: #3E7156;">
+              <%= finishedTasksCount %>
+            </span>
+           <span style="color: #3E7156; font-size: 16px;">
+            งาน
+           </span>
+          </p>
+          <p class="Text">ที่เสร็จสิ้น <br> <%= periodText %></p>
+        </div>
+      </div>
+    
+      <div class="countCard" id="updatedTasksCard">
+        <div class="icon" style="background-color: #D0DFFC;">
+          <i class="fa-solid fa-pen" style="color: #1F55C5;"></i>
+        </div>
+        <div class="countText">
+          <p class="count">
+            <span class="countNumber" style="color: #1F55C5;">
+              <%= updatedTasksCount %>
+            </span>
+           <span style="color: #1F55C5; font-size: 16px;">
+            งาน
+           </span>
+          </p>
+          <p class="Text">ที่ถูกอัพเดต <br> <%= periodText %></p>
+        </div>
+      </div>
+    
+      <div class="countCard" id="recentTasksCard">
+        <div class="icon" style="background-color: #DED8FA;">
+          <i class="fa-solid fa-plus" style="color: #5B4EAC;"></i>
+        </div>
+        <div class="countText">
+          <p class="count">
+            <span class="countNumber" style="color: #5B4EAC;">
+              <%= recentTasksCount %>
+            </span>
+           <span style="color: #5B4EAC; font-size: 16px;">
+            งาน
+           </span>
+          </p>
+          <p class="Text">ที่สร้าง <br> <%= periodText %></p>
+        </div>
+      </div>
+    
+      <div class="countCard" id="dueNextSevenDaysCard">
+        <div class="icon" style="background-color: #F9D7D3;">
+          <i class="fa-solid fa-calendar-days" style="color: #A1392C;"></i>
+        </div>
+        <div class="countText">
+          <p class="count">
+            <span class="countNumber" style="color: #A1392C;">
+              <%= dueNextSevenDaysCount %>
+            </span>
+           <span style="color: #A1392C; font-size: 16px;">
+            งาน
+           </span>
+          </p>
+          <p class="Text">กำหนดส่ง <br> ภายในอีก 7 วัน</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chartWrap">
+      <div class="chart" id="statusChartContainer">
+        <h1 id="chartTitle">ภาพรวมสถานะของงาน</h1>
+        <div class="chartContent statusChart">
+          <canvas id="statusChart"></canvas>
+          <div class="hoverText">
+            <p id="statusPer">
+              <%= finishedPercentage %>%
+            </p>
+            <p id="statusLabel">Finished</p>
+          </div>
+        </div>
+      </div>
+    
+      <div class="chart" id="priorityChartContainer">
+        <h1 id="chartTitle">ลำดับความสำคัญของงาน</h1>
+        <div class="chartContent priorityChart">
+          <canvas id="priorityChart" width="400" height="400"></canvas>
+        </div>
+      </div>
+    
+      <div class="chart workload-chart" id="workloadChartContainer">
+        <h1 id="chartTitle" style="padding-left: 8px;">ปริมาณงานของสมาชิก</h1>
+        <table class="workload-table">
+          <thead>
+            <tr>
+              <th id="userAvatarLabel">ผู้รับผิดชอบ</th>
+              <th>การกระจายงาน</th>
+              <th id="taskCountLabel">จำนวนงาน</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% workloadChartData.forEach(item=> { %>
+              <tr class="workload-row" data-user-id="<%= item.user._id %>" data-space-id="<%= spaces._id %>">
+                <td id="userAvatar">
+                  <img src="<%= item.user.profileImage %>" class="user-avatar">
+                  <span class="user-name">
+                    <%= item.user.username %>
+                  </span>
+                </td>
+                <td id="progressBar">
+                  <div class="perWrap">
+                    <div class="progress-bar-container">
+                      <div class="progress-bar"
+                        style="width: <%= item.percentage %>%; background-color: <%= item.percentage > 40 ? '#f66' : '#6cc' %>;">
+                      </div>
+                    </div>
+                    <span class="percentage">
+                      <%= item.percentage %>%
+                    </span>
+                  </div>
+                </td>
+                <td id="taskCount">
+                  <%= item.taskCount %>
+                </td>
+              </tr>
+              <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<div id="tasksModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle"></h2>
+    <table id="tasksTable">
+      <thead>
+        <tr>
+          <th>Task Name</th>
+          <th>Detail</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th>Due Date</th>
+          <th>Assigned Users</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tasks will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+  document.getElementById('filter').addEventListener('change', function() {
+    const selectedPeriod = this.value;
+    const spaceId = '<%= spaces._id %>'; 
+    window.location.href = `/space/item/${spaceId}/dashboard?period=${selectedPeriod}`;
+  });
+  
+  // count cards
+  document.addEventListener('DOMContentLoaded', function() {
+    const tasks = <%- JSON.stringify(tasks) %>;
+
+    const modal = document.getElementById("tasksModal");
+    const span = document.getElementsByClassName("close")[0];
+    const modalTitle = document.getElementById("modalTitle");
+    const tasksTableBody = document.getElementById("tasksTable").getElementsByTagName("tbody")[0];
+
+    function showModal(title, filteredTasks) {
+      modalTitle.textContent = title;
+      tasksTableBody.innerHTML = '';
+
+      filteredTasks.forEach(task => {
+        const row = tasksTableBody.insertRow();
+        row.onclick = function() {
+          window.location.href = `/task/${task._id}/detail?spaceId=<%= spaces._id %>`;
+        };
+        row.style.cursor = 'pointer';
+
+        row.insertCell(0).textContent = task.taskName;
+        row.insertCell(1).textContent = task.taskDetail;
+        row.insertCell(2).textContent = task.taskStatus;
+        row.insertCell(3).textContent = task.taskPriority;
+        row.insertCell(4).textContent = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '';
+        const assignedUsersCell = row.insertCell(5);
+        task.assignedUsers.forEach(user => {
+          const img = document.createElement('img');
+          img.src = user.profileImage;
+          img.alt = user.displayName;
+          img.style.width = '30px';
+          img.style.height = '30px';
+          img.style.borderRadius = '50%';
+          img.style.marginRight = '5px';
+          assignedUsersCell.appendChild(img);
+        });
+      });
+
+      modal.style.display = "block";
+    }
+
+    document.getElementById("finishedTasksCard").onclick = function() {
+      const filteredTasks = tasks.filter(task => task.taskStatus === 'finished');
+      showModal('Finished Tasks', filteredTasks);
+    };
+
+    document.getElementById("updatedTasksCard").onclick = function() {
+      const filteredTasks = tasks.filter(task => {
+        const lastUpdated = new Date(task.updatedAt);
+        const createdAt = new Date(task.createdAt);
+        return lastUpdated > createdAt;
+      });
+      showModal('Updated Tasks', filteredTasks);
+    };
+
+    document.getElementById("recentTasksCard").onclick = function() {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const filteredTasks = tasks.filter(task => new Date(task.createdAt) >= sevenDaysAgo);
+      showModal('Recent Tasks', filteredTasks);
+    };
+
+    document.getElementById("dueNextSevenDaysCard").onclick = function() {
+      const today = new Date();
+      const nextSevenDays = new Date();
+      nextSevenDays.setDate(today.getDate() + 7);
+      const filteredTasks = tasks.filter(task => task.dueDate && new Date(task.dueDate) >= today && new Date(task.dueDate) <= nextSevenDays);
+      showModal('Tasks Due in Next 7 Days', filteredTasks);
+    };
+
+    span.onclick = function() {
+      modal.style.display = "none";
+    };
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    };
+  });
+
+  // Status chart
+  document.addEventListener('DOMContentLoaded', function () {
+    const tasks = <%- JSON.stringify(tasks) %>;
+    const statusCounts = <%- JSON.stringify(statusCounts) %>;
+
+    // Calculate total tasks
+    const totalTasks =
+      (statusCounts.toDo || 0) +
+      (statusCounts.inProgress || 0) +
+      (statusCounts.fix || 0) +
+      (statusCounts.finished || 0);
+
+    // Calculate percentage of 'finished' status
+    const finishedPercentage = <%= finishedPercentage %>;
+
+    // Prepare data for the chart
+    let statusData;
+    if (totalTasks === 0) {
+      statusData = {
+        labels: ['ไม่มีงาน'],
+        datasets: [
+          {
+            label: 'Task Status Distribution',
+            data: [1],
+            backgroundColor: ['#D3D3D3'], 
+            hoverBackgroundColor: ['#C7C8CC'],
+          },
+        ],
+      };
+    } else {
+      statusData = {
+        labels: ['ยังไม่ทำ', 'กำลังทำ', 'แก้ไข', 'เสร็จสิ้น'],
+        datasets: [
+          {
+            label: 'การกระจายสถานะงาน',
+            data: [
+              statusCounts.toDo || 0,
+              statusCounts.inProgress || 0,
+              statusCounts.fix || 0,
+              statusCounts.finished || 0,
+            ],
+            backgroundColor: ['#DFE1E6', '#2684FF', '#FF7452', '#57D9A3'],
+            hoverBackgroundColor: ['#E3E4E8', '#74A5FF', '#FC9F85', '#9CE6C0'],
+          },
+        ],
+      };
+    }
+
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+
+    const statusChart = new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: statusData,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              generateLabels: function (chart) {
+                const data = chart.data;
+                const meta = chart.getDatasetMeta(0);
+                return data.labels.map((label, i) => {
+                  const count = data.datasets[0].data[i] || 0;
+                  const hidden = meta.data[i]?.hidden || false;
+                  return {
+                    text: `${label}: ${count}`,
+                    fillStyle: data.datasets[0].backgroundColor[i],
+                    hidden: hidden,
+                    index: i,
+                    font: {
+                      family: 'Kanit', // Use 'Kanit' font
+                    },
+                  };
+                });
+              },
+              usePointStyle: false,
+              boxWidth: 20, // Square box
+              boxHeight: 20,
+              padding: 15,
+            },
+            onClick: function (e, legendItem, legend) {
+              const chart = legend.chart;
+              const index = legendItem.index;
+              const meta = chart.getDatasetMeta(0);
+    
+              meta.data[index].hidden = !meta.data[index].hidden;
+              chart.update();
+    
+              const labelElement = e.native.target.closest('.chartjs-legend-item');
+              if (labelElement) {
+                labelElement.style.opacity = meta.data[index].hidden ? '0.5' : '1';
+              }
+            },
+            onLayoutUpdate: function (chart) {
+              // Align labels in a 2x2 grid
+              const container = chart.canvas.parentNode.querySelector('.chartjs-legend');
+              if (container) {
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(2, auto)';
+                container.style.justifyContent = 'center';
+                container.style.gap = '10px'; // Adjust gap between rows/columns
+              }
+            },
+          },
+          tooltip: {
+            enabled: false, // Disable default tooltips
+          },
+        },
+      },
+    });
+    
+
+    // Set default hover text to 'finished' status percentage
+    const statusPer = document.getElementById('statusPer');
+    const statusLabel = document.getElementById('statusLabel');
+    statusPer.textContent = `${finishedPercentage}%`;
+    statusLabel.textContent = 'เสร็จสิ้น';
+
+    // Add event listener for mousemove on the canvas
+    const canvas = document.getElementById('statusChart');
+    canvas.addEventListener('mousemove', function (event) {
+      const elements = statusChart.getElementsAtEventForMode(
+        event,
+        'nearest', // Nearest chart item
+        { intersect: true }, // Require cursor intersection
+        false
+      );
+    
+      if (elements.length) {
+        const index = elements[0].index;
+        const count = statusChart.data.datasets[0].data[index];
+        const percentage = totalTasks > 0 ? ((count / totalTasks) * 100).toFixed(1) : 0;
+        const label = statusChart.data.labels[index];
+        const colors = ['#44546F', '#0065ff', '#ff7452', '#36b37e']; // Colors for each status
+    
+        // Update hover text content
+        statusPer.textContent = `${percentage}%`;
+        statusLabel.textContent = label;
+    
+        // Change percentage color and weight
+        statusPer.style.color = colors[index];
+        statusPer.style.fontWeight = '500';
+        statusPer.style.fontSize = '22px';
+      } else {
+        statusPer.textContent = `${finishedPercentage}%`;
+        statusLabel.textContent = 'เสร็จสิ้น';
+        statusLabel.style.fontSize = '16px';
+        statusPer.style.fontWeight = '300';
+    
+        // Reset percentage color and weight
+        statusPer.style.color = '#57D9A3'; 
+        statusPer.style.fontWeight = 'normal';
+      }
+    });
+
+    // Add event listener for click on the canvas
+    canvas.addEventListener('click', function (event) {
+      const elements = statusChart.getElementsAtEventForMode(
+        event,
+        'nearest', // Nearest chart item
+        { intersect: true }, // Require cursor intersection
+        false
+      );
+
+      if (elements.length) {
+        const index = elements[0].index;
+        const statusMap = {
+          'ยังไม่ทำ': 'toDo',
+          'กำลังทำ': 'inProgress',
+          'แก้ไข': 'fix',
+          'เสร็จสิ้น': 'finished',
+        };
+        const status = statusMap[statusChart.data.labels[index]];
+        const filteredTasks = tasks.filter(task => task.taskStatus === status);
+  
+        showModal(`${statusChart.data.labels[index]} งาน`, filteredTasks);
+      }
+    });
+
+    // Function to show modal with filtered tasks
+    function showModal(title, filteredTasks) {
+      const modal = document.getElementById('tasksModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const tasksTableBody = document
+        .getElementById('tasksTable')
+        .getElementsByTagName('tbody')[0];
+
+      modalTitle.textContent = title;
+      tasksTableBody.innerHTML = '';
+
+      filteredTasks.forEach(task => {
+        const row = tasksTableBody.insertRow();
+        row.onclick = function () {
+          window.location.href = `/task/${task._id}/detail?spaceId=<%= spaces._id %>`;
+        };
+        row.style.cursor = 'pointer';
+
+        row.insertCell(0).textContent = task.taskName;
+        row.insertCell(1).textContent = task.taskDetail;
+        row.insertCell(2).textContent = task.taskStatus;
+        row.insertCell(3).textContent = task.taskPriority;
+        row.insertCell(4).textContent = task.dueDate
+          ? new Date(task.dueDate).toLocaleDateString()
+          : '';
+
+        const assignedUsersCell = row.insertCell(5);
+        task.assignedUsers.forEach(user => {
+          const img = document.createElement('img');
+          img.src = user.profileImage;
+          img.alt = user.displayName;
+          img.style.width = '30px';
+          img.style.height = '30px';
+          img.style.borderRadius = '50%';
+          img.style.marginRight = '5px';
+          assignedUsersCell.appendChild(img);
+        });
+      });
+
+      modal.style.display = "block";
+    }
+
+    // Close modal
+    const span = document.getElementsByClassName('close')[0];
+    span.onclick = function () {
+      const modal = document.getElementById('tasksModal');
+      modal.style.display = 'none';
+    };
+
+    window.onclick = function (event) {
+      const modal = document.getElementById('tasksModal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    };
+  });
+
+  // Priority chart
+  document.addEventListener('DOMContentLoaded', function () {
+    const tasks = <%- JSON.stringify(tasks) %>;
+    const priorityCounts = <%- JSON.stringify(priorityCounts) %>;
+
+    // Priority data for the chart
+    const priorityData = {
+      labels: ['ด่วน', 'ปกติ', 'ต่ำ'],
+      datasets: [
+        {
+          label: 'การแบ่งลำดับความสำคัญ',
+          data: [
+            priorityCounts.urgent || 0,
+            priorityCounts.normal || 0,
+            priorityCounts.low || 0,
+          ],
+          backgroundColor: ['#DE350B', '#FFAB00', '#4C9AFF'],
+          hoverBackgroundColor: ['#F88F75', '#FFCD67', '#79B3FF'],
+          barThickness: 50, 
+        },
+      ],
+    };
+
+    const ctxPriority = document.getElementById('priorityChart').getContext('2d');
+
+    // Custom plugin to draw icons
+    const iconPlugin = {
+      id: 'iconPlugin',
+      afterDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        const { bottom } = chartArea;
+        const xAxis = scales.x;
+        const iconMapping = {
+          ด่วน: '\uf102', // Font Awesome unicode for "fa-angles-up"
+          ปกติ: '\uf07d', // Font Awesome unicode for "fa-grip-lines"
+          ต่ำ: '\uf103', // Font Awesome unicode for "fa-angle-down"
+        };
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = '16px FontAwesome';
+
+        xAxis.ticks.forEach((_, i) => {
+          const x = xAxis.getPixelForTick(i);
+          const y = bottom + 18;
+          const iconX = x - 30;
+          const label = priorityData.labels[i];
+          ctx.fillStyle = priorityData.datasets[0].backgroundColor[i];
+          ctx.fillText(iconMapping[label], iconX, y);
+        });
+
+        ctx.restore();
+      },
+    };
+
+    // Create the priority chart
+    const priorityChart = new Chart(ctxPriority, {
+      type: 'bar',
+      data: priorityData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: {
+              display: false,
+              barPercentage: 0,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'จำนวนงาน',
+            },
+            ticks: {
+              callback: function(value) {
+                return Number.isInteger(value) ? value : null;
+              },
+              stepSize: 1,
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            enabled: false,
+          },
+        },
+      },
+      plugins: [iconPlugin],
+    });
+
+    // Add event listener for click on the canvas
+    const canvas = document.getElementById('priorityChart');
+    canvas.addEventListener('click', function (event) {
+      const elements = priorityChart.getElementsAtEventForMode(
+        event,
+        'nearest', // Nearest chart item
+        { intersect: true }, // Require cursor intersection
+        false
+      );
+
+      if (elements.length) {
+        const index = elements[0].index;
+        const priorityMap = {
+          0: 'urgent',
+          1: 'normal',
+          2: 'low',
+        };
+        const priority = priorityMap[index];
+        const filteredTasks = tasks.filter(task => task.taskPriority === priority);
+        showModal(`${priorityData.labels[index]} Tasks`, filteredTasks);
+      }
+    });
+
+    // Function to show modal with filtered tasks
+    function showModal(title, filteredTasks) {
+      const modal = document.getElementById("tasksModal");
+      const modalTitle = document.getElementById("modalTitle");
+      const tasksTableBody = document.getElementById("tasksTable").getElementsByTagName("tbody")[0];
+
+      modalTitle.textContent = title;
+      tasksTableBody.innerHTML = '';
+
+      filteredTasks.forEach(task => {
+        const row = tasksTableBody.insertRow();
+        row.onclick = function() {
+          window.location.href = `/task/${task._id}/detail?spaceId=<%= spaces._id %>`;
+        };
+        row.style.cursor = 'pointer';
+
+        row.insertCell(0).textContent = task.taskName;
+        row.insertCell(1).textContent = task.taskDetail;
+        row.insertCell(2).textContent = task.taskStatus;
+        row.insertCell(3).textContent = task.taskPriority;
+        row.insertCell(4).textContent = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '';
+        const assignedUsersCell = row.insertCell(5);
+        task.assignedUsers.forEach(user => {
+          const img = document.createElement('img');
+          img.src = user.profileImage;
+          img.alt = user.displayName;
+          img.style.width = '30px';
+          img.style.height = '30px';
+          img.style.borderRadius = '50%';
+          img.style.marginRight = '5px';
+          assignedUsersCell.appendChild(img);
+        });
+      });
+
+      modal.style.display = "block";
+    }
+
+    // Close modal
+    const span = document.getElementsByClassName("close")[0];
+    span.onclick = function() {
+      const modal = document.getElementById("tasksModal");
+      modal.style.display = "none";
+    };
+
+    window.onclick = function(event) {
+      const modal = document.getElementById("tasksModal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    };
+  });
+
+  // Workload chart
+  document.addEventListener('DOMContentLoaded', function () {
+    const tasks = <%- JSON.stringify(tasks) %>;
+
+    // Add event listener for click on workload table rows
+    document.querySelectorAll('.workload-row').forEach(row => {
+      row.addEventListener('click', function () {
+        const userId = this.getAttribute('data-user-id');
+        const filteredTasks = tasks.filter(task =>
+          task.assignedUsers.some(user => user._id === userId)
+        );
+        const userName = this.querySelector('.user-name').textContent;
+
+        // Show the modal and populate it with the tasks
+        showModal(`Tasks Assigned to ${userName}`, filteredTasks);
+      });
+    });
+
+    // Function to populate the modal and display it
+    function showModal(title, tasks) {
+      const modal = document.getElementById('tasksModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const tasksTableBody = document.querySelector('#tasksTable tbody');
+
+      // Set modal title
+      modalTitle.textContent = title;
+
+      // Clear existing tasks in the modal
+      tasksTableBody.innerHTML = '';
+
+      // Populate tasks in the modal
+      if (tasks.length > 0) {
+        tasks.forEach(task => {
+          const taskRow = document.createElement('tr');
+          taskRow.innerHTML = `
+            <td>${task.taskName || 'N/A'}</td>
+            <td>${task.taskDetail || 'No details provided'}</td>
+            <td>${task.taskStatus || 'Unspecified'}</td>
+            <td>${task.taskPriority || 'Unspecified'}</td>
+            <td>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</td>
+            <td>
+                ${task.assignedUsers.map(user => `
+                    <img src="${user.profileImage}" alt="${user.displayName || 'User'}" class="user-avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;">
+                `).join('')}
+            </td>
+          `;
+          tasksTableBody.appendChild(taskRow);
+        });
+      } else {
+        // Show a message if there are no tasks for the selected user
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `<td colspan="6">No tasks assigned to this user.</td>`;
+        tasksTableBody.appendChild(emptyRow);
+      }
+
+      // Display the modal
+      modal.style.display = 'block';
+    }
+
+    // Close modal when clicking the close button
+    document.querySelector('#tasksModal .close').addEventListener('click', function () {
+      document.getElementById('tasksModal').style.display = 'none';
+    });
+
+    // Optional: Close modal when clicking outside the modal content
+    window.addEventListener('click', function (event) {
+      const modal = document.getElementById('tasksModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+</script>

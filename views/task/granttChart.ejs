@@ -1,0 +1,51 @@
+<body>
+    <div style="margin-left: 200px;">
+        <h2>Gantt Chart for <%= spaces.SpaceName %>
+        </h2>
+        <canvas id="ganttChart" style="max-width: 800px;"></canvas>
+    </div>
+    <script type="module">
+        import { Chart } from 'https://cdn.jsdelivr.net/npm/chart.js';
+        import 'https://cdn.jsdelivr.net/npm/chartjs-chart-timeline';
+
+        // Register the timeline controller and scales
+        Chart.register(
+            Chart.controllers.timeline, 
+            Chart.scales.timeline
+        );
+        
+        const tasks = <%- JSON.stringify(tasks) %>; // Pass tasks from the controller
+        console.log(tasks);
+
+        const ctx = document.getElementById('ganttChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'timeline',
+            data: {
+                datasets: [{
+                    label: 'Tasks',
+                    data: tasks.map(task => ({
+                        x: [new Date(task.start), new Date(task.end)], // Start and end dates
+                        y: task.name, // Task name
+                    })),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day', // Configure time units
+                        },
+                    },
+                    y: {
+                        type: 'category', // Categories for tasks
+                        labels: tasks.map(task => task.name),
+                    },
+                },
+            },
+        });
+    </script>
+</body>

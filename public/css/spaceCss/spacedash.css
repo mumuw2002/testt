@@ -1,0 +1,384 @@
+:root {
+    --topnav: #323450;
+    --lighttopnav: #474962;
+    --select: #7952B3;
+    --lightselect: #E5E4FA;
+    --deepbackground: #F7F8F9;
+    --lightline: #E9EBEF;
+    --lightText: #fffc;
+    --btn: #5C54E5;
+
+    --line: #d7d9dd;
+    --more-line: #9a9a9a;
+    --text1: #656f7d;
+    --color1: #7952b3;
+    --color2: #a788d4;
+    --color4: #906fc3;
+    --color3: #e4e9f6;
+    --text2: #37352f;
+    --light: #37352fa6;
+    --more-light: #0a0a03d7;
+    --notYet: #c3cad5;
+
+    --cancle: #E53935;
+    --grey: rgb(235, 237, 242);
+}
+
+.content {
+    background-color: white;
+    margin: 30px 50px 30px 150px;
+
+    .spaceall {
+
+        .heard-space {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 30px 0px;
+
+            .textheard-space {
+                font-size: 30px;
+                font-weight: 600;
+            }
+
+        }
+
+        .task-space::-webkit-scrollbar {
+            display: none;
+        }
+
+        .task-space {
+            width: 100%;
+            height: 80vh;
+            overflow-y: scroll;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+
+            .taskcardall {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: space-between;
+
+                .taskcard {
+                    flex-basis: calc(50% - 20px);
+                    max-width: 48%;
+                    height: 275px;
+                    border: #CFD1D6 solid 1px;
+                    border-radius: 10px;
+                    box-sizing: border-box;
+                    margin-bottom: 20px;
+
+                    .theme {
+                        height: 50%;
+                        width: 100%;
+                    }
+
+                    .theme img {
+                        height: 100%;
+                        width: 100%;
+                        object-fit: cover;
+                        border-radius: 10px 10px 0 0;
+                        transition: opacity 0.3s ease-in-out;
+                    }
+
+                    a {
+                        text-decoration: none;
+                    }
+                }
+
+                .taskcard:hover .theme img {
+                    opacity: 0.5;
+                }
+
+                .taskcard:hover {
+                    margin-top: -5px;
+                    transition: 0.3s ease-in-out;
+                }
+            }
+        }
+
+    }
+}
+
+
+.taskcard .taskcardall-text {
+    
+}
+.spaceNameCard{
+    font-size: 22px;
+    color: #323450;
+}
+.taskcardall-text .card-title {
+    width: 100%;
+    font-size: 22px;
+    font-weight: 500;
+    color: #000000;
+    align-content: center;
+    margin: 0;
+    border: 0;
+}
+
+.taskcardall-text #subname {
+    padding: 0 30px;
+}
+
+.taskcardall-text .card-last {
+    padding: 5px 30px;
+    width: 100%;
+}
+
+.taskcardall-text .taskmember {
+    margin-right: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.taskcardall-text .taskmember img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: #bebebe solid 1px;
+    margin-left: -10px;
+}
+
+.taskcardall-text .taskmember img:first-child {
+    margin-left: 0;
+}
+
+.taskcardall-text .card-last .taskceate-date p {
+    align-content: center;
+    font-size: 14px;
+    opacity: 0.6;
+    margin: 0;
+    color: #37352F;
+}
+
+
+.card-last .taskedit {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 10%;
+    height: 100%;
+}
+
+.card-last .taskedit i {
+    color: #000000;
+    text-decoration: none;
+    font-size: 24px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.card-last .taskedit i:hover {
+    background-color: var(--lightselect);
+    color: var(--select);
+    border-radius: 5px;
+    opacity: 1;
+}
+
+.card-last .taskedit .fa-trash {
+    color: red;
+}
+
+.card-last .taskedit .dropdown-taskedit-item i {
+    font-size: 16px;
+}
+
+.card-last .taskedit #icon {
+    position: relative;
+    top: 10px;
+    left: 30px;
+}
+
+.card-last .card-last-left {
+    float: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.card-last .card-last-left .taskceate-date {
+    align-content: center;
+    width: -webkit-fill-available;
+}
+
+.heard-space #new-task-btn {
+    font-size: 14px;
+    font-weight: 300;
+    background-color: #5C54E5;
+    color: #ffffff;
+    padding: 5px 10px;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.8;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.heard-space #new-task-btn:hover {
+    opacity: 1;
+}
+
+/* Updated Dropdown Menu Styling */
+.dropdown-taskedit {
+    position: absolute;
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    padding: 10px 0;
+    z-index: 10;
+    display: none;
+    top: 40px;
+    right: 0;
+}
+
+.dropdown-taskedit li {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dropdown-taskedit li:hover {
+    background-color: var(--primary-color-light);
+}
+
+.dropdown-taskedit li i {
+    margin-right: 10px;
+}
+
+.dropdown-taskedit li a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+}
+
+.dropdown-taskedit li:last-child a {
+    color: #EE201C;
+}
+
+.dropdown-taskedit .line {
+    margin: 5px 0;
+}
+
+#editsubnameform {
+    display: block;
+    margin-left: 30px;
+    display: block;
+    width: fit-content;
+    border-bottom: #7952B3 2px solid;
+}
+
+.taskcardall-text input {
+    padding: 0;
+}
+
+#sub-Detail {
+    display: flex;
+    gap: 15px;
+  }
+
+#spaceInfo{
+    font-size: 16px;
+}
+
+#spaceCreate{
+    text-decoration: none;
+    font-weight: 400;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--btn);
+    color: white;
+    border-radius: 5px;
+    height: 40px;
+    width: 150px;
+    opacity: 0.7;
+}
+#spaceCreate:hover{
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.detailInfo{
+    display: flex;
+    flex-direction: column;
+    padding: 20px 30px;
+}
+
+.card-last{
+    margin-top: 15px;
+}
+.taskCount{
+    padding: 5px 15px;
+    background-color: var(--btn);
+    color: white;
+    border-radius: 5px;
+    margin-right: 20px;
+    opacity: 0.7;
+    position: relative;
+    cursor: pointer;
+}
+  
+.taskCount[data-tooltip]:hover::after {
+    content: attr(data-tooltip); /* Display the tooltip text */
+    position: absolute;
+    top: -35px; /* Position above the element */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333; /* Tooltip background color */
+    color: #fff; /* Tooltip text color */
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    white-space: nowrap; /* Prevent line breaks */
+    z-index: 9999; /* Ensure it appears on top */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none; /* Avoid interfering with other elements */
+}
+  
+  .taskCount[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    top: -10px; /* Position arrow closer to the element */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent; /* Tooltip arrow color */
+    z-index: 9999; /* Ensure it appears on top */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+}
+  
+.taskCount[data-tooltip]:hover::after,
+.taskCount[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+#sec{
+    display: flex;
+    flex-direction: row;
+}

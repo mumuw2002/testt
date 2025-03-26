@@ -1,0 +1,129 @@
+<div class="topNavlink">
+    <div class="projectTop">
+        <div class="nameInfo">
+            <div class="projectCover">
+                <img src="<%= spaces.projectCover %>" alt="">
+            </div>
+            <h3 class="Name" id="projectName" onclick="makeEditable(this)"><%= spaces.projectName %></h3>
+        </div>
+    </div>
+    <div class="list">
+        <ul class="nav navi-tabs">
+            <li class="nav-items top-item-nav <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <a class="nav-link" href="/space/item/<%= spaces._id %>/dashboard?period=7day">
+                    <i class='bx bxs-dashboard'></i> แดชบอร์ด
+                </a>
+            </li>
+            <li class="nav-items top-item-nav <%= currentPage === 'board' ? 'active' : '' %>">
+                <a class="nav-link"
+                    href="/space/item/<%= spaces._id %>/task_board">
+                    <i class="fa-regular fa-clipboard"></i> บอร์ดงาน
+                </a>
+            </li>
+    
+            <li class="nav-items top-item-nav <%= currentPage === 'granttChart' ? 'active' : '' %>">
+                <a class="nav-link"
+                    href="/space/item/<%= spaces._id %>/granttChart">
+                    <i class="fa-solid fa-chart-gantt"></i> ชาร์ท
+                </a>
+            </li>
+    
+            <li class="nav-items top-item-nav <%= currentPage === 'task_calenda' ? 'active' : '' %>">
+                <a class="nav-link" href="#">
+                    <i class="fa-solid fa-calendar-days"></i> ปฎิทิน
+                </a>
+            </li>
+    
+            <li class="nav-items top-item-nav <%= currentPage === 'task_chat' ? 'active' : '' %>">
+                <a class="nav-link" href="/space/item/<%= spaces._id %>/chat">
+                    <i class="fa-solid fa-comments"></i> แชท
+                </a>
+            </li>
+    
+            <li class="nav-items top-item-nav <%= currentPage === 'task_member' ? 'active' : '' %>">
+                <a class="nav-link"
+                    href="/space/item/<%= spaces._id %>/member">
+                    <i class="fa-solid fa-users"></i> สมาชิก
+                </a>
+            </li>
+    
+            <li class="nav-items top-item-nav <%= currentPage === 'task_setting' ? 'active' : '' %>">
+                <a class="nav-link" href="#">
+                    <i class="fa-solid fa-gear"></i> ตั้งค่า
+                </a>
+            </li>
+    
+        </ul>
+    </div>
+</div>
+
+<script>
+    function makeEditable(element) {
+        // Get the current project name
+        const currentName = element.textContent;
+
+        // Create an input field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'editableInput';
+        input.style.width = `${element.offsetWidth}px`;
+
+        // Replace the h3 element with the input field
+        element.replaceWith(input);
+        input.focus();
+
+        // Add event listeners to handle updates
+        input.addEventListener('blur', function () {
+            saveName(input);
+        });
+
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                saveName(input);
+            }
+        });
+    }
+
+    function saveName(input) {
+        const newName = input.value.trim();
+        const spaceId = '<%= spaces._id %>'; // Pass the space ID from the backend
+
+        // Create the h3 element with the updated project name
+        const h3 = document.createElement('h3');
+        h3.textContent = newName || "Unnamed Project"; // Fallback for empty input
+        h3.className = 'Name';
+        h3.id = 'projectName';
+        h3.onclick = function () {
+            makeEditable(h3);
+        };
+
+        // Replace the input with the updated h3 element
+        input.replaceWith(h3);
+
+        // Send the updated name to the server via AJAX
+        fetch('/update-project-name', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                spaceId: spaceId, // Send spaceId
+                projectName: newName,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                console.log(data.message);
+                // Refresh the page after the update
+                location.reload(); // This will refresh the page
+            } else if (data.error) {
+                console.error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating project name:', error);
+        });
+    }
+</script>

@@ -1,0 +1,46 @@
+<div class="sidebar-popup" id="sidebar-popup">
+    <div class="side-top">
+        <i class='bx bxs-chevrons-right' id="close-task-btn"></i>
+    </div>
+    <div class="add-task-form">
+        <div class="top-form">
+            <div class="add-label">
+                <i class='bx bx-task' ></i>
+                <p>เพิ่มพื้นที่ทำงานใหม่</p>
+            </div>
+            
+            <p id="spaceInfo"> พื้นที่ทำงาน(Workspace) คือพื้นที่เสมือนที่ออกแบบมาเพื่อจัดระเบียบและบริหารจัดการงาน(Tasks)
+                โดยแต่ละพื้นที่ทำงานจะเป็นหน่วยที่แยกกันอย่างชัดเจน ทำให้ผู้ใช้สามารถจัดการงานต่างๆ ได้ตามหมวดหมู่ ทีม หรือโปรเจกต์ที่เกี่ยวข้อง 
+            </p>
+        </div>
+            
+
+        <form action="/createSpace" method="POST" class="form" id="subjectForm" onsubmit="return validateForm()">
+            <table class="add-input">
+                <tr style="vertical-align: top;">
+                    <td>
+                        <p style="margin-top: 5px;">ชื่อพื้นที่ทำงาน</p>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" name="SpaceName" id="SpaceName" placeholder="* เพิ่มชื่อพื้นที่" required>
+                        <span id="notiAlert" style="display:none; color: red;">* กรุณากรอกชื่อพื้นที่โดยไม่ใช้อักขระพิเศษ</span>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td style="vertical-align: top; padding-top: 5px;"> รายละพื้นที่ทำงาน <br> (ทางเลือก) </td>
+                    <td>
+                        <textarea id="SpaceDescription" name="SpaceDescription" rows="4" cols="50" placeholder="เพิ่มรายละพื้นที่"></textarea>
+                        <span id="descAlert" style="display:none; color: red;">* รายละเอียดพื้นที่ทำงานต้องยาวอย่างน้อย 10 ตัวอักษร</span>
+                    </td>
+                </tr>
+            </table>
+            <div class="all-btn">
+                <button type="submit" class="btn">สร้าง</button>
+            </div>
+        </form>
+
+        
+    </div>
+</div>
+<div class="overlay" id="overlay"></div>

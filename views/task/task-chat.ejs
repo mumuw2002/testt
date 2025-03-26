@@ -1,0 +1,773 @@
+
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  body {
+    background-color: #f7f7f7;
+  }
+
+  .chat-container {
+    max-width: 900px;
+    margin: 20px auto;
+    display: flex;
+    border: #ebebeb solid 1px;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
+    border-radius: 16px;
+    background-color: #ffffff;
+  }
+
+  .chat-seccon {
+    display: flex;
+    width: -webkit-fill-available;
+  }
+
+  .chat-container .chat-head {
+    min-width: 50px;
+  }
+
+  .chat-container .chat-formsubmit {
+    border-top: #efefef 1px solid;
+  }
+
+  .chat-container #chat-sec1 {
+    padding: 0 16px;
+  }
+
+  .chat-container #chat-sec {
+    padding: 16px;
+  }
+
+  .messages {
+    min-height: 400px;
+    max-height: 410px;
+    overflow-y: scroll;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .message.current-user {
+    justify-content: flex-end;
+  }
+
+  .message.other-user {
+    justify-content: flex-start;
+  }
+
+  .message-bubble {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 10px;
+    position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+  .message-bubble #chat-nameuser {
+    font-size: 14px;
+    color: #374151;
+  }
+
+  .message.current-user .message-bubble {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+  }
+
+  .message.other-user .message-bubble {
+    background-color: #f1f1f1;
+    color: black;
+    margin-right: auto;
+  }
+
+  .message-time {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+    text-align: right;
+  }
+
+  .date-divider {
+    text-align: center;
+    margin: 10px 0;
+    color: #666;
+    font-size: 0.9em;
+    font-weight: bold;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .chat-form {
+    display: flex;
+  }
+
+  .chat-form input {
+    margin: 0 20px;
+    font-size: 14px;
+    flex: 1;
+    padding: 10px;
+    border: #cecece solid 1px;
+    border-radius: 20px;
+  }
+
+  .chat-form button {
+    margin-right: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    border-radius: 100px;
+    border: 1px solid #007bff;
+  }
+
+  .user-search-results {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 300px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    bottom: 70px;
+  }
+
+  .user-list {
+    width: 50%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .headuser-list {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .headuser-list h2 {
+    font-size: 18px;
+    margin: 0;
+    align-self: center;
+  }
+
+  .headuser-list button {
+    font-size: 20px;
+    border: none;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 100px;
+  }
+
+  .headuser-list button:hover {
+    background-color: rgb(243, 244, 246);
+  }
+
+  .user-list ul {
+    list-style-type: none;
+    padding: 8px;
+  }
+
+  .chat-secright {
+    width: 50%;
+  }
+
+  .user-list li {
+    margin-top: 5px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .user-list li:hover {
+    background-color: #f1f1f1;
+  }
+
+  .user-list a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0.75rem;
+    text-decoration: none;
+
+  }
+
+  .conmessage {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+
+  .nameconuser .conuser {
+    width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+  .user-list .profileimage-chat {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    border-radius: 100%;
+  }
+
+  .new-message-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 300px;
+    z-index: 1000;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  }
+
+  .new-message-btn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-100px);
+  }
+
+  .read-status,
+  .message.current-user .message-time {
+    color: rgb(219 234 254);
+  }
+
+  .name-chat {
+    font-weight: 500;
+  }
+
+  .notimesaage {
+    justify-self: center;
+  }
+
+  .all-chat {
+    min-height: 400px;
+    max-height: 410px;
+    overflow-y: scroll;
+  }
+</style>
+</head>
+
+<body>
+  <%- include('../task/task_component/task-navbar.ejs') %>
+    <div class="chat-container">
+      <div class="chat-seccon">
+        <div class="user-list">
+          <div class="headuser-list">
+            <h2>แชท</h2>
+            <button><i class='bx bxs-chevron-right'></i></button>
+          </div>
+          <div class="all-chat">
+            <ul>
+              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>">
+                <a href="/space/item/<%= spaces._id %>/chat">
+                  <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
+                  <div class="conmessage">
+                    <div class="nameconuser">
+                      <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
+                      </div>
+                      <div class="conuser">
+                        <% if (lastGroupMessage) { %>
+                          <%= lastGroupMessage.message %>
+                            <% } else { %>
+                              ไม่มีข้อความล่าสุด
+                              <% } %>
+                      </div>
+                    </div>
+                    <div class="timenotimessage">
+                      <div class="timemessage">
+                        <% if (lastGroupMessage) { %>
+                          <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
+                            <% } else { %>
+                              <%= formatTime(new Date()) %>
+                                <% } %>
+                      </div>
+                      <div class="notimesaage">123</div>
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>">
+                <a href="/space/item/<%= spaces._id %>/chat">
+                  <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
+                  <div class="conmessage">
+                    <div class="nameconuser">
+                      <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
+                      </div>
+                      <div class="conuser">
+                        <% if (lastGroupMessage) { %>
+                          <%= lastGroupMessage.message %>
+                            <% } else { %>
+                              ไม่มีข้อความล่าสุด
+                              <% } %>
+                      </div>
+                    </div>
+                    <div class="timenotimessage">
+                      <div class="timemessage">
+                        <% if (lastGroupMessage) { %>
+                          <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
+                            <% } else { %>
+                              <%= formatTime(new Date()) %>
+                                <% } %>
+                      </div>
+                      <div class="notimesaage">123</div>
+                    </div>
+                  </div>
+                </a>
+              </li>
+
+              <% spaces.collaborators.forEach(collab=> { %>
+                <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
+                  <li>
+                    <a href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
+                      <img class="profileimage-chat" src="<%= collab.user.profileImage %>" alt="Profile" width="30">
+                      <div class="conmessage">
+                        <div class="nameconuser">
+                          <div class="name-chat nameuser">
+                            <%= collab.user.firstName %>
+                              <%= collab.user.lastName %>
+                          </div>
+                          <div class="conuser">
+                            <% if (collab.lastMessage) { %>
+                              <%= collab.lastMessage %>
+                                <% } else { %>
+                                  <% } %>
+                          </div>
+                        </div>
+                        <div class="timenotimessage">
+                          <div class="timemessage">
+                            <% if (collab.lastMessageTime) { %>
+                              <%= formatTime(new Date(collab.lastMessageTime)) %>
+                                <% } %>
+                          </div>
+                          <div class="notimesaage">123</div>
+                        </div>
+                      </div>
+
+                    </a>
+                  </li>
+                  <% } %>
+                    <% }); %>
+            </ul>
+          </div>
+        </div>
+        <div class="chat-secright">
+          <div class="chat-head" id="chat-sec"></div>
+          <div class="chat-con" id="chat-sec1">
+            <div class="messages" id="messages">
+              <% let previousDate=null; %>
+                <% messages.forEach((msg)=> { %>
+                  <% const messageDate=new Date(msg.createdAt); %>
+                    <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
+                      <!-- แสดงวันที่เมื่อเปลี่ยนวัน -->
+                      <div class="date-divider">
+                        <%= formatDate(messageDate) %>
+                      </div>
+                      <% } %>
+                        <% previousDate=messageDate; %>
+                          <div
+                            class="message <%= msg.userId && msg.userId._id && msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
+                            data-message-id="<%= msg._id %>">
+
+                            <% if (msg.userId && msg.userId._id && msg.userId._id.toString() !==user._id.toString()) {
+                              %>
+                              <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
+                                class="avatar">
+                              <% } %>
+
+                                <div class="message-bubble">
+                                  <% if (msg.userId && msg.userId._id.toString() !==user._id.toString()) { %>
+                                    <div id="chat-nameuser">
+                                      <%= msg.userId.firstName %>
+                                        <%= msg.userId.lastName %>
+                                    </div>
+                                    <% } %>
+
+
+                                      <%= msg.message %>
+
+                                        <div class="message-time">
+                                          <%= formatTime(messageDate) %>
+                                            <% if (msg.userId && msg.userId._id &&
+                                              msg.userId._id.toString()===user._id.toString()) { %>
+                                              <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
+                                              <% } %>
+                                        </div>
+                                </div>
+                          </div>
+
+                          <% }); %>
+            </div>
+            <div class="user-search-results" id="userSearchResults" style="display: none;">
+              <ul class="user-list"></ul>
+            </div>
+          </div>
+          <div class="chat-formsubmit" id="chat-sec">
+            <form class="chat-form" id="chatForm">
+              <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
+                autocomplete="off">
+              <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
+            </form>
+          </div>
+        </div>
+
+
+      </div>
+
+    </div>
+
+    <script>
+      // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
+      function formatTime(date) {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // ชั่วโมง 0 จะเป็น 12 AM
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      // ฟังก์ชันสำหรับตรวจสอบการเปลี่ยนวัน
+      function isNewDay(date1, date2) {
+        return (
+          date1.getFullYear() !== date2.getFullYear() ||
+          date1.getMonth() !== date2.getMonth() ||
+          date1.getDate() !== date2.getDate()
+        );
+      }
+
+      // ฟังก์ชันสำหรับจัดรูปแบบวันที่
+      function formatDate(date) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('th-TH', options);
+      }
+    </script>
+
+    <script>
+      const messagesContainer = document.getElementById("messages");
+      const chatSecRight = document.querySelector('.chat-secright');
+
+      const newMessageButton = document.createElement("button");
+      newMessageButton.innerHTML = "<i class='bx bxs-chevron-down'></i>";
+      newMessageButton.classList.add("new-message-btn");
+      chatSecRight.appendChild(newMessageButton);
+
+      let userScrolledUp = false;
+      let lastScrollPosition = localStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
+
+      messagesContainer.scrollTop = lastScrollPosition;
+
+      function checkScrollPosition() {
+        const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+        if (!nearBottom) {
+          newMessageButton.classList.add("show");
+        } else {
+          newMessageButton.classList.remove("show");
+        }
+      }
+
+      messagesContainer.addEventListener("scroll", checkScrollPosition);
+
+
+      messagesContainer.addEventListener("scroll", () => {
+        checkScrollPosition();
+        localStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+      });
+
+
+      // บันทึกตำแหน่งการเลื่อนเมื่อผู้ใช้เปลี่ยนแท็บหรือปิดหน้าต่าง
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === 'hidden') {
+          sessionStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+        } else {
+          messagesContainer.scrollTop = sessionStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
+        }
+      });
+
+      window.addEventListener("beforeunload", () => {
+        sessionStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+      });
+
+      const saveScrollPosition = () => {
+        sessionStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+      };
+
+      document.addEventListener("visibilitychange", saveScrollPosition);
+      window.addEventListener("beforeunload", saveScrollPosition);
+
+
+      newMessageButton.addEventListener("click", () => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        newMessageButton.classList.remove("show");
+      });
+
+      // เมื่อเชื่อมต่อกับ Socket.io
+      socket.on('connect', () => {
+        console.log('Connected to Socket.io server');
+        // ส่งข้อมูลผู้ใช้ที่อยู่ในหน้าแชทไปยังเซิร์ฟเวอร์
+        socket.emit('user in chat', { userId: '<%= user._id %>', spaceId: '<%= spaces._id %>' });
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          socket.emit('user returned to chat', { userId: '<%= user._id %>', spaceId: '<%= spaces._id %>' });
+          messagesContainer.scrollTop = sessionStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
+        } else {
+          socket.emit('user left chat', { userId: '<%= user._id %>', spaceId: '<%= spaces._id %>' });
+        }
+      });
+
+      // รับข้อความใหม่จากเซิร์ฟเวอร์
+      socket.on('chat message', (msg) => {
+        const messages = document.querySelector('.messages');
+        const messageDate = new Date(msg.createdAt);
+
+        // ตรวจสอบการเปลี่ยนวัน
+        const lastMessage = messages.lastElementChild;
+        if (lastMessage && lastMessage.classList.contains('message')) {
+          const lastMessageDate = new Date(lastMessage.dataset.timestamp);
+          if (isNewDay(lastMessageDate, messageDate)) {
+            // แสดงวันที่เมื่อเปลี่ยนวัน
+            const dateDivider = document.createElement('div');
+            dateDivider.classList.add('date-divider');
+            dateDivider.textContent = formatDate(messageDate);
+            messages.appendChild(dateDivider);
+          }
+        }
+
+        // สร้าง element สำหรับข้อความใหม่
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', msg.userId._id === '<%= user._id %>' ? 'current-user' : 'other-user');
+        messageElement.dataset.messageId = msg._id;
+        messageElement.dataset.timestamp = msg.createdAt;
+
+        // กำหนดเนื้อหาของข้อความ
+        messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
+<img src="${msg.userId.profileImage}" alt="User" class="avatar">
+<div class="message-bubble">
+<strong>${msg.userId.firstName} ${msg.userId.lastName}:</strong> ${msg.message}
+<div class="message-time">${formatTime(messageDate)}</div>
+</div>
+` : `
+<div class="message-bubble">
+${msg.message}
+<div class="message-time">
+${formatTime(messageDate)}
+<span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
+</div>
+</div>
+`;
+
+        // เพิ่มข้อความใหม่เข้าไปใน container
+        messagesContainer.appendChild(messageElement);
+        if (!userScrolledUp) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          localStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+        }
+      });
+
+      // อัปเดตจำนวนผู้ใช้ที่เห็นข้อความเมื่อได้รับข้อมูลจากเซิร์ฟเวอร์
+      socket.on('message read update', (data) => {
+        const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+        if (messageElement) {
+          const readStatusElement = messageElement.querySelector('.read-status');
+          if (readStatusElement) {
+            readStatusElement.textContent = `เห็นแล้ว: ${data.readByCount} คน`;
+          }
+        }
+      });
+    </script>
+
+    <script>
+      const messageInput = document.getElementById('messageInput');
+      const userSearchResults = document.getElementById('userSearchResults');
+      const userList = document.querySelector('.user-list');
+
+      let selectedUsers = []; // เก็บผู้ใช้ที่ถูกเลือก
+      let isSending = false; // ตัวแปรตรวจสอบสถานะการส่งข้อความ
+
+      // ฟังก์ชันค้นหาผู้ใช้
+      async function searchUsers(query) {
+        try {
+          const spaceId = '<%= spaces._id %>'; // ใช้ spaceId จาก EJS
+          const response = await fetch(`/space/${spaceId}/search-users?query=${query}`);
+          const data = await response.json();
+          if (data.success) {
+            displayUserResults(data.users);
+          }
+        } catch (error) {
+          console.error('Error searching users:', error);
+        }
+      }
+
+      // ฟังก์ชันแสดงผลผู้ใช้ที่ค้นหาได้
+      function displayUserResults(users) {
+        userList.innerHTML = ''; // ล้างผลลัพธ์เก่า
+        users.forEach(user => {
+          // ตรวจสอบอีกครั้งว่า user ไม่ใช่ตัวเอง (เพื่อความปลอดภัย)
+          if (user._id.toString() !== '<%= user._id %>') {
+            const li = document.createElement('li');
+            li.innerHTML = `
+<img src="${user.profileImage || '/img/profileImage/Profile.jpeg'}" alt="User" class="avatar" style="width: 20px; height: 20px;">
+<span>${user.firstName} ${user.lastName}</span>
+`;
+            li.dataset.userId = user._id; // เก็บ userid ใน dataset
+            li.addEventListener('click', () => selectUser(user));
+            userList.appendChild(li);
+          }
+        });
+        userSearchResults.style.display = 'block';
+      }
+
+      // ฟังก์ชันเลือกผู้ใช้
+      function selectUser(user) {
+        if (!selectedUsers.some(u => u._id === user._id)) {
+          selectedUsers.push(user);
+          updateMessageInput();
+        } else {
+          console.log(`${user.firstName} ถูกเลือกไปแล้ว!`);
+        }
+        userSearchResults.style.display = 'none';
+      }
+
+      function syncSelectedUsersWithInput() {
+        selectedUsers = selectedUsers.filter(user => {
+          const userTag = `@${user.firstName} ${user.lastName}`;
+          return messageInput.value.includes(userTag);
+        });
+      }
+
+
+      // ฟังก์ชันอัปเดต input ข้อความ
+      function updateMessageInput() {
+        const userTags = selectedUsers.map(user => `@${user.firstName} ${user.lastName}`).join(' ');
+        messageInput.value = userTags + ' ';
+        messageInput.focus(); // ให้ focus กลับไปที่ input หลังจากอัปเดต
+      }
+
+      // ฟังก์ชันตรวจสอบเมื่อผู้ใช้พิมพ์
+      // ฟังก์ชัน sync selectedUsers กับ messageInput
+      function syncSelectedUsersWithInput() {
+        selectedUsers = selectedUsers.filter(user => {
+          const userTag = `@${user.firstName} ${user.lastName}`;
+          return messageInput.value.includes(userTag);
+        });
+      }
+
+      messageInput.addEventListener('input', (e) => {
+        const value = e.target.value.trim();
+        const atIndex = value.lastIndexOf('@');
+
+        syncSelectedUsersWithInput(); // ✅ sync ทุกครั้งที่ input เปลี่ยน
+
+        if (atIndex !== -1) {
+          const query = value.slice(atIndex + 1).trim();
+          if (query.length > 0) {
+            searchUsers(query);
+          } else {
+            searchUsers('');
+          }
+        } else {
+          userSearchResults.style.display = 'none';
+        }
+      });
+
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          setTimeout(() => {
+            syncSelectedUsersWithInput(); // ✅ sync หลังจาก backspace
+          }, 0);
+        }
+      });
+
+      // ฟังก์ชันส่งข้อความ
+      document.querySelector('.chat-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (isSending) return;
+        isSending = true;
+
+        const message = messageInput.value;
+        const spaceId = '<%= spaces._id %>';
+        const userId = '<%= user._id %>';
+
+        const mentionedUserIds = selectedUsers.map(user => user._id);
+        console.log('Mentioned Users:', mentionedUserIds); // Log ผู้ใช้ที่ถูก mention
+
+        try {
+          const response = await fetch(`/space/item/${spaceId}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message,
+              mentionedUsers: mentionedUserIds // ส่ง userid ที่ถูก mention ไปยังเซิร์ฟเวอร์
+            }),
+          });
+          if (response.ok) {
+            messageInput.value = '';
+            selectedUsers = []; // ล้างรายการผู้ใช้ที่ถูกเลือก
+          } else {
+            console.error('Failed to send message');
+          }
+        } catch (error) {
+          console.error('Error sending message:', error);
+        } finally {
+          isSending = false;
+        }
+      });
+
+      // เมื่อผู้ใช้ถูก mention
+      socket.on('new mention', (data) => {
+        alert(`คุณถูก mention โดย ${data.mentionedBy} ในโปรเจกต์ ${data.projectName}: ${data.message}`);
+      });
+
+      // ตรวจจับเหตุการณ์ keydown บน messageInput
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          const value = messageInput.value;
+          const cursorPosition = messageInput.selectionStart;
+
+          // เช็คว่าตำแหน่งเคอร์เซอร์อยู่หลัง Mention พอดีหรือเปล่า
+          for (const user of selectedUsers) {
+            const mentionText = `@${user.firstName} ${user.lastName}`;
+            const mentionEnd = value.indexOf(mentionText) + mentionText.length;
+
+            // เคอร์เซอร์อยู่หลัง Mention พอดี และไม่มีข้อความตามหลัง
+            if (cursorPosition === mentionEnd) {
+              // เช็คว่าหลัง mention ไม่มี text ต่อ (หรือเป็นช่องว่างตามหลัง)
+              const remainingText = value.slice(mentionEnd).trim();
+              if (remainingText === '') {
+                e.preventDefault(); // ยกเลิก backspace ปกติ
+                // ลบ mention ทั้งชุดออก
+                const newValue = value.slice(0, value.indexOf(mentionText)) + value.slice(mentionEnd);
+                messageInput.value = newValue.trim();
+                messageInput.setSelectionRange(value.indexOf(mentionText), value.indexOf(mentionText)); // วางเคอร์เซอร์ใหม่
+                // ลบ user ออกจาก selectedUsers
+                selectedUsers = selectedUsers.filter(u => u._id !== user._id);
+                return; // ออกจาก loop ทันที
+              }
+            }
+          }
+        }
+      });
+    </script>

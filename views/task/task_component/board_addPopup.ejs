@@ -1,0 +1,206 @@
+<div class="sidebar-popup" id="sidebar-popup">
+    <div class="side-top">
+        <div class="top-form">
+            <p><i class="fa-solid fa-square-plus"></i>
+                เพิ่มงานที่คุณต้องการจัดการ</p>
+        </div>
+        <i class="fa-solid fa-xmark" id="close-task-btn"></i>
+    </div>
+
+    <div class="formWrap">
+        <span id="note">ช่องที่ต้องกรอกข้อมูลจะมีเครื่องหมายดอกจัน <span style="color: #ff0000;">*</span> </span>
+        <form action="/createTask" method="POST" class="add-form" enctype="multipart/form-data" id="taskForm" 
+        onsubmit="return prepareFormData()">
+            <div class="formInput" id="statusForm" style="margin-top: 15px;">
+                <span id="staLabel">
+                    <i class="fa-solid fa-hourglass-start icon"></i>
+                    สถานะของงาน
+                </span>
+                <div class="status-section">
+                    <div class="status-toggle" id="statusToggle">
+                        <span id="currentStatus">ยังไม่ทำ</span>
+                        <i class="bx bx-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="dropdown-status" id="statusDropdown" style="display: none;">
+                    <!-- สถานะของงานจะโชว์ -->
+                </div>
+                <input type="hidden" id="taskStatus" name="taskStatus" value="toDo" />
+                <input type="hidden" id="statusId" name="statusId" value="" />
+                <span id="staNote">ส่วนของสถานะเริ่มต้นเมื่อสร้างงาน</span>
+            </div>
+
+            <div class="formInput" id="nameInput">
+                <label for="taskName">
+                    <i class="fa-solid fa-font icon"></i>
+                    ชื่องาน <span style="color: red;">*</span>
+                </label>
+                <input type="text" id="taskName" name="taskName" placeholder="ใส่ชื่อของงาน">
+            </div>
+
+            <div class="formInput" id="detailInput">
+                <label for="taskDetail">
+                    <i class="fa-solid fa-circle-info icon"></i>
+                    รายละเอียดของงาน
+                </label>
+                <textarea id="taskDetail" name="taskDetail" rows="4" cols="50"
+                    placeholder="กรอกรายละเอียดงานเพิ่มเติม (ทางเลือก)"></textarea>
+            </div>
+
+            <div class="line"></div>
+            
+            <div class="formInput" id="assInput">
+                <div class="assign">
+                    <label for="assignedUsersDropdown" id="assignLabel">
+                        <i class="fa-solid fa-user-pen icon"></i>
+                        ผู้รับมอบหมาย
+                    </label>
+
+                    <div id="assignedUsersDropdown" class="custom-dropdown">
+                        <div class="selected-users" id="selectedUsers"></div>
+                        <div class="dropdown-options" id="dropdownOptions">
+                            <% spaces.collaborators.forEach(collaborator=> { %>
+                                <% if (collaborator.status !=='pending' ) { %>
+                                    <div class="dropdown-item" data-user-id="<%= collaborator.user._id %>"
+                                        onclick="selectUser('<%= collaborator.user._id %>', '<%= collaborator.user.username %>', '<%= collaborator.user.profileImage %>')">
+                                        <img src="<%= collaborator.user.profileImage || '/public/img/profileImage/userDefalt.jpg' %>"
+                                            alt="<%= collaborator.user.username %>">
+                                        <span>
+                                            <p id="assUsername">
+                                                <%= collaborator.user.username %>
+                                            </p>
+                                            <p id="assEmail">
+                                                <%= collaborator.user.googleEmail %>
+                                            </p>
+                                        </span>
+                                    </div>
+                                    <% } %>
+                                        <% }) %>
+                        </div>
+                    </div>
+                    <p id="autoAssign" data-user-id="<%= user._id %>" data-username="<%= user.username %>"
+                        data-user-image="<%= user.profileImage %>">
+                        มอบหมายให้ตัวเอง
+                    </p>
+                    <input type="hidden" name="assignedUsers" id="assignedUsersInput" value="">
+                </div>
+            </div>
+
+            <div class="formInput" id="priInput">
+                <label for="priorityToggle" id="priLabel">
+                    <i class="fa-solid fa-flag icon"></i>
+                    ระดับความสำคัญ
+                </label>
+                <div class="priority-section">
+                    <div class="priority-toggle" id="priorityToggle">
+                        <span id="currentPriority">
+                            <i class="fa-solid fa-grip-lines priIcon" style="color: #ffcc00;"></i> ปกติ
+                        </span>
+                        <i class="bx bx-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-priority" id="priorityDropdown" style="display: none;">
+                        <div class="priority-option" data-priority="urgent" data-icon="fa-solid fa-angles-up"
+                            data-color="#ff0000">
+                            <div class="icon">
+                                <i class="fa-solid fa-angles-up priIcon" style="color: #ff0000;"></i>
+                            </div>
+                            ด่วน
+                        </div>
+                        <div class="priority-option" data-priority="normal" data-icon="fa-solid fa-grip-lines"
+                            data-color="#ffcc00">
+                            <div class="icon">
+                                <i class="fa-solid fa-grip-lines priIcon" style="color: #ffcc00;"></i>
+                            </div>
+                            ปกติ
+                        </div>
+                        <div class="priority-option" data-priority="low" data-icon="fa-solid fa-angle-down"
+                            data-color="#2562F6">
+                            <div class="icon">
+                                <i class="fa-solid fa-angle-down priIcon" style="color: #2562F6;"></i>
+                            </div>
+                            ต่ำ
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="taskPriority" name="taskPriority" value="normal" />
+                </div>
+                <span id="priNote">ระดับความสำคัญจะบ่งบอกถึงความสำคัญของงานนั้น</span>
+            </div>
+
+            <div class="formInput" id="tagInput">
+                <label for="tags-section" id="tagLabel">
+                    <i class="fa-solid fa-tags icon"></i>
+                    แท็กงาน
+                </label>
+                <div class="tags-section">
+                    <div id="selectedTagsContainer"></div>
+                    <input type="text" name="search" placeholder="ค้นหาหรือสร้างแท็กสำหรับงานนี้" id="tag-search">
+                    <div class="showTagsItem" id="tagsContainer">
+                    </div>
+                    <div class="no-match" id="noMatch" style="display: none;">
+                        กด Enter เพื่อสร้างแท็กใหม่
+                    </div>
+                    <input type="hidden" name="taskTag" id="tagArray">
+                </div>
+            </div>
+
+            <div class="line"></div>
+
+            <div class="dateOpt">
+                <div class="formInput" id="startdateInput">
+                    <div class="dateLabel" style="margin-bottom: 5px;">
+                        <input type="checkbox" id="enableStartDate">
+                        <label for="startDate" class="dateLa">
+                            วันที่เริ่มงาน</label>
+                      </div>
+                      <input 
+                              type="text" 
+                              class="form-control" 
+                              name="startDate" 
+                              id="startDate" 
+                              placeholder="เลือกวันที่" 
+                              disabled>
+                    <span id="dateNote">สามารถกำหนดวันที่เริ่มต้นเพื่อที่วางแผนไว้สำหรับการทำงานได้</span>
+                </div>
+
+                <div class="formInput" id="dueDateInput">
+                    <div class="dateLabel" style="margin-bottom: 5px;">
+                      <label for="dueDate" class="dateLa">
+                        <i class="fa-solid fa-calendar-check icon"></i>
+                        วันครบกำหนด</label>
+                    </div>
+                    <input 
+                            type="text" 
+                            class="form-control" 
+                            name="dueDate" 
+                            id="dueDate" 
+                            placeholder="เลือกวันที่" >
+                </div>
+            </div>
+
+            <div class="formInput" id="attachmentInput" style="width: 100%;">
+                <label for="attachments" id="attachmentsLabel">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i> แนบไฟล์
+                    <p id="attNote">Drop files to attach or <span class="browse-btn">Browse</span></p>
+                </label>
+                <input type="file" id="attachments" name="attachments" multiple>
+            </div>
+            <div class="preview-container" id="previewContainer"></div>
+
+
+            <input type="hidden" name="spaceId" id="spaceId" value="<%= spaces._id %>">
+        </form>
+    </div>
+
+    <div class="all-btn">
+        <div id="btnall">
+            <button type="submit" id="submitTaskBtn">
+                <i class="fa-solid fa-plus"></i>
+                สร้างงาน    
+            </button>
+        </div>
+    </div>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<script src="/script/taskScript/addPopup.js"></script>

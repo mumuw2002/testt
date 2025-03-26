@@ -1,0 +1,76 @@
+<div class="taskcardall">
+    <% for (var i=spaces.length - 1; i>= 0; i--) { %>
+      <div class="taskcard">
+        <a href="/space/item/<%= spaces[i]._id %>/task_board" id="card">
+
+          <div class="theme">
+            <img src="<%= spaces[i].SpacePicture %>" alt="taskbackground"
+              onerror="this.onerror=null; this.src='/public/spaceictures/defultBackground.jpg';">
+          </div>
+          
+          <div class="taskcardall-text">
+            <div class="taskcardall-text">
+              <span class="spaceNameCard">
+                <%= spaces[i].SpaceName %>
+              </span>
+
+                <form id="editsubnameform" action="/updateSpaceName/<%= spaces[i]._id %>" method="POST"
+                  class="space-name-edit-form-<%= spaces[i]._id %>" style="display: none;">
+                  <input type="text" name="SpaceName" class="card-title" value="<%= spaces[i].SpaceName %>"
+                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); this.form.submit(); }">
+                </form>
+            </div>
+
+            <div class="card-last">
+              <div class="card-last-left">
+                <div class="taskmember">
+                  <% spaces[i].collaborators.forEach(collab=> { %>
+                    <% if (collab.user) { %>
+                      <img src="<%= collab.user.profileImage %>" alt="<%= collab.user.username %>"
+                        onerror="this.onerror=null; this.src='/public/img/profileImage/userDefalt.jpg';"
+                        style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;">
+                      <% } %>
+                        <% }) %>
+                </div>
+                <div class="taskceate-date">
+                  <p>สร้างเมื่อ : <span>
+                      <%= new Date(spaces[i].createdAt).toLocaleDateString('th-TH', { day: '2-digit' ,
+                        month: '2-digit' }) %>
+                    </span></p>
+                </div>
+              </div>
+            </div>
+        </a>
+        
+        <div class="taskedit">
+          <!-- ใช้ _id เพื่อสร้าง ID ของแต่ละ dropdown -->
+          <i class="bx bx-dots-horizontal-rounded" id="dropdown-toggle-<%= spaces[i]._id %>"></i>
+          <ul class="dropdown-taskedit" id="dropdown-taskedit-<%= spaces[i]._id %>"
+            aria-labelledby="navbarDropdown" style="display: none;">
+            <li><a class="dropdown-taskedit-item" href="#"><i class="fa-solid fa-pen"></i>เปลี่ยนชื่อ</a></li>
+            <li>
+              <form id="upload-form" action="/updateSpacePicture/<%= spaces[i]._id %>" method="POST"
+                enctype="multipart/form-data">
+                <input type="file" name="SpacePicture" accept="image/*" style="display: none;"
+                  id="file-input-<%= spaces[i]._id %>" onchange="submitForm('<%= spaces[i]._id %>')">
+              </form>
+              <a class="dropdown-taskedit-item" href="#"
+                onclick="document.getElementById('file-input-<%= spaces[i]._id %>').click();">
+                <i class="fa-solid fa-circle-half-stroke"></i>เปลี่ยนภาพพื้นหลังของงาน
+              </a>
+            </li>
+            <div class="line"></div>
+            <li>
+              <form id="delete-space-form-<%= spaces[i]._id %>" action="/space/delete/<%= spaces[i]._id %>"
+                method="POST" style="display: none;">
+                <input type="hidden" name="_method" value="DELETE">
+              </form>
+              <a href="#" class="dropdown-taskedit-item" onclick="deleteSpace('<%= spaces[i]._id %>')">
+                <i class="fa-solid fa-trash"></i> ลบ
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+  </div>
