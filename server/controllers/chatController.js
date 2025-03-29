@@ -47,13 +47,15 @@ exports.renderChatPage = async (req, res) => {
           ],
           type: 'private'
         })
+          .populate('userId', 'firstName lastName') // เพิ่ม populate userId
           .sort({ createdAt: -1 })
           .lean();
 
         return {
           ...collab,
           lastMessage: lastMessage ? lastMessage.message : null,
-          lastMessageTime: lastMessage ? lastMessage.createdAt : null
+          lastMessageTime: lastMessage ? lastMessage.createdAt : null,
+          lastMessageSender: lastMessage ? lastMessage.userId : null // เพิ่มข้อมูลผู้ส่ง
         };
       }
       return collab;
@@ -61,6 +63,7 @@ exports.renderChatPage = async (req, res) => {
 
     // ดึงข้อความล่าสุดของแชทกลุ่ม
     const lastGroupMessage = await Chat.findOne({ spaceId, type: 'group' })
+      .populate('userId', 'firstName lastName') // เพิ่มบรรทัดนี้
       .sort({ createdAt: -1 })
       .lean();
 
@@ -74,14 +77,16 @@ exports.renderChatPage = async (req, res) => {
     res.render('task/task-chat', {
       spaces: { ...space, collaborators: collaboratorsWithLastMessage },
       messages,
-      lastGroupMessage, // ส่งข้อความล่าสุดของแชทกลุ่มไปยังหน้า EJS
+      lastGroupMessage,
       user: req.user,
       layout: '../views/layouts/task',
       currentPage: 'task_chat',
+      currentChatUserId: null, // ไม่มีผู้ใช้สำหรับแชทกลุ่ม
       formatDate,
       formatTime,
       isNewDay,
     });
+
   } catch (error) {
     console.log(error);
     res.status(500).send("Internal Server Error");
@@ -131,35 +136,51 @@ exports.postMessage = async (req, res) => {
       .lean();
 
     const io = req.app.get('io');
+    if (type === 'group') {
+      io.emit('update last group message', {
+        spaceId: populatedMessage.spaceId,
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        userId: populatedMessage.userId ? {
+          _id: populatedMessage.userId._id.toString(),
+          firstName: populatedMessage.userId.firstName,
+          lastName: populatedMessage.userId.lastName
+        } : null
+      });
+    } else if (type === 'private') {
+      io.emit('update last private message', {
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt,
+        userId: { _id: populatedMessage.userId._id.toString() },
+        targetUserId: { _id: populatedMessage.targetUserId._id.toString() }
+      });
+    }
+
 
     if (type === 'group') {
       io.emit('chat message', populatedMessage);
       io.emit('update last group message', {
+        spaceId: populatedMessage.spaceId,
         message: populatedMessage.message,
         createdAt: populatedMessage.createdAt,
-        spaceId: populatedMessage.spaceId
+        userId: populatedMessage.userId ? {
+          _id: populatedMessage.userId._id.toString(),
+          firstName: populatedMessage.userId.firstName,
+          lastName: populatedMessage.userId.lastName
+        } : null
       });
     } else if (type === 'private') {
       io.to(`private_${userId}_${populatedMessage.targetUserId}`).emit('private message', populatedMessage);
       io.to(`private_${populatedMessage.targetUserId}_${userId}`).emit('private message', populatedMessage);
-      
-      // ส่งข้อมูลที่ครบถ้วนสำหรับการอัปเดต
+
       io.emit('update last private message', {
+        userId: { _id: populatedMessage.userId._id.toString() },
+        targetUserId: { _id: populatedMessage.targetUserId._id.toString() },
         message: populatedMessage.message,
-        createdAt: populatedMessage.createdAt,
-        userId: {
-          _id: populatedMessage.userId._id.toString(),
-          firstName: populatedMessage.userId.firstName,
-          lastName: populatedMessage.userId.lastName
-        },
-        targetUserId: {
-          _id: populatedMessage.targetUserId._id.toString(),
-          firstName: populatedMessage.targetUserId.firstName,
-          lastName: populatedMessage.targetUserId.lastName
-        }
+        createdAt: populatedMessage.createdAt
       });
     }
-    
+
     // แจ้งเตือนผู้ใช้ที่ถูก mention
     if (populatedMessage.mentionedUsers.length > 0) {
       populatedMessage.mentionedUsers.forEach(user => {
@@ -321,6 +342,28 @@ exports.markAllAsRead = async (req, res) => {
   }
 };
 
+exports.markGroupMessagesAsRead = async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    const { userId } = req.body;
+
+    await Chat.updateMany(
+      { 
+        spaceId, 
+        type: 'group',
+        readBy: { $ne: userId },
+        userId: { $ne: userId }
+      },
+      { $push: { readBy: userId } }
+    );
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error marking group messages as read:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
 // แสดงหน้าแชทส่วนตัว
 exports.renderPrivateChatPage = async (req, res) => {
   try {
@@ -328,15 +371,47 @@ exports.renderPrivateChatPage = async (req, res) => {
     const targetUserId = req.params.targetUserId;
     const userId = req.user.id;
 
-    // ตรวจสอบว่า Space และผู้ใช้เป้าหมายมีอยู่จริง
-    const space = await Spaces.findById(spaceId).populate('collaborators.user', 'username profileImage').lean();
+    // ดึงข้อมูล space และ populate collaborators พร้อมข้อมูล lastMessage
+    const space = await Spaces.findById(spaceId)
+      .populate({
+        path: 'collaborators.user',
+        select: 'firstName lastName profileImage'
+      })
+      .lean();
+
     const targetUser = await User.findById(targetUserId).lean();
 
     if (!space || !targetUser) {
-      return res.status(404).send("Space or target user not found");
+      return res.status(404).send("ไม่พบ Space หรือผู้ใช้เป้าหมาย");
     }
 
-    // ดึงข้อความส่วนตัวระหว่างผู้ใช้สองคน
+    // ดึงข้อมูล lastMessage สำหรับแต่ละ collaborator
+    const collaboratorsWithLastMessage = await Promise.all(
+      space.collaborators.map(async (collab) => {
+        if (collab.user && collab.user._id.toString() !== userId.toString()) {
+          const lastMessage = await Chat.findOne({
+            $or: [
+              { userId: collab.user._id, targetUserId: req.user._id },
+              { userId: req.user._id, targetUserId: collab.user._id }
+            ],
+            type: 'private'
+          })
+          .populate('userId', 'firstName lastName') // เพิ่ม populate userId
+          .sort({ createdAt: -1 })
+          .lean();
+    
+          return {
+            ...collab,
+            lastMessage: lastMessage ? lastMessage.message : null,
+            lastMessageTime: lastMessage ? lastMessage.createdAt : null,
+            lastMessageSender: lastMessage ? lastMessage.userId : null // เพิ่มข้อมูลผู้ส่ง
+          }; 
+        }
+        return collab;
+      })
+    );
+
+    // ดึงข้อความส่วนตัวระหว่างผู้ใช้
     const messages = await Chat.find({
       spaceId,
       $or: [
@@ -350,46 +425,28 @@ exports.renderPrivateChatPage = async (req, res) => {
       .sort({ createdAt: 'asc' })
       .lean();
 
-    // ฟังก์ชันสำหรับจัดรูปแบบวันที่
-    const formatDate = (date) => {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return date.toLocaleDateString('th-TH', options);
-    };
-
-    // ฟังก์ชันสำหรับจัดรูปแบบเวลา
-    const formatTime = (date) => {
-      let hours = date.getHours();
-      let minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // ชั่วโมง 0 จะเป็น 12 AM
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      return `${hours}:${minutes} ${ampm}`;
-    };
-
-    // ฟังก์ชันสำหรับตรวจสอบการเปลี่ยนวัน
-    const isNewDay = (date1, date2) => {
-      return (
-        date1.getFullYear() !== date2.getFullYear() ||
-        date1.getMonth() !== date2.getMonth() ||
-        date1.getDate() !== date2.getDate()
-      );
-    };
+    // ดึงข้อความล่าสุดของแชทกลุ่ม
+    const lastGroupMessage = await Chat.findOne({ spaceId, type: 'group' })
+      .populate('userId', 'firstName lastName') // เพิ่มบรรทัดนี้
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.render('task/task-chat-private', {
-      spaces: space,
+      spaces: { ...space, collaborators: collaboratorsWithLastMessage },
       messages,
       user: req.user,
       targetUser,
+      lastGroupMessage,
       layout: '../views/layouts/task',
       currentPage: 'task_chat_private',
+      currentChatUserId: targetUserId, // ระบุผู้ใช้ที่กำลังแชทด้วย
       formatDate,
       formatTime,
       isNewDay,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send("เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์");
   }
 };
 
@@ -419,6 +476,28 @@ exports.sendPrivateMessage = async (req, res) => {
       .populate('userId', 'firstName lastName profileImage')
       .populate('targetUserId', 'firstName lastName profileImage')
       .lean();
+
+    if (!populatedMessage.userId || !populatedMessage.targetUserId) {
+      console.error('ข้อมูลผู้ใช้ไม่ครบถ้วน:', populatedMessage);
+      return res.status(400).json({ success: false, error: "Missing user data" });
+    }
+
+    io.emit('update last private message', {
+      userId: populatedMessage.userId ? {
+        _id: populatedMessage.userId._id.toString(),
+        firstName: populatedMessage.userId.firstName,
+        lastName: populatedMessage.userId.lastName
+      } : null,
+      targetUserId: populatedMessage.targetUserId ? {
+        _id: populatedMessage.targetUserId._id.toString(),
+        firstName: populatedMessage.targetUserId.firstName,
+        lastName: populatedMessage.targetUserId.lastName
+      } : null,
+      message: populatedMessage.message,
+      createdAt: populatedMessage.createdAt
+    });
+
+
 
     const io = req.app.get('io');
     io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
@@ -476,5 +555,76 @@ exports.markPrivateMessageAsRead = async (req, res) => {
   } catch (error) {
     console.error("Error marking message as read:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+};
+
+// ดึงจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
+exports.getUnreadGroupMessageCount = async (req, res) => {
+  try {
+    const spaceId = req.params.id;
+    const userId = req.user._id;
+
+    const unreadCount = await Chat.countDocuments({
+      spaceId,
+      type: 'group',
+      readBy: { $nin: [userId] },
+      userId: { $ne: userId }
+    });
+
+    res.status(200).json({ success: true, unreadCount });
+  } catch (error) {
+    console.error('Error fetching unread group message count:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+// ดึงจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัว
+exports.getUnreadPrivateMessageCount = async (req, res) => {
+  try {
+    const spaceId = req.params.id;
+    const targetUserId = req.params.targetUserId;
+    const userId = req.user._id;
+
+    const unreadCount = await Chat.countDocuments({
+      spaceId,
+      $or: [
+        { userId: targetUserId, targetUserId: userId },
+        { userId: userId, targetUserId: targetUserId }
+      ],
+      type: 'private',
+      readBy: { $nin: [userId] },
+      userId: { $ne: userId }
+    });
+
+    res.status(200).json({ success: true, unreadCount });
+  } catch (error) {
+    console.error('Error fetching unread private message count:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+exports.markPrivateMessagesAsRead = async (req, res) => {
+  try {
+    const { spaceId, targetUserId } = req.params;
+    const { userId } = req.body;
+
+    await Chat.updateMany(
+      {
+        spaceId,
+        $or: [
+          { userId: targetUserId, targetUserId: userId },
+          { userId: userId, targetUserId: targetUserId }
+        ],
+        type: 'private',
+        readBy: { $ne: userId },
+        userId: { $ne: userId }
+      },
+      { $push: { readBy: userId } }
+    );
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error marking private messages as read:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };

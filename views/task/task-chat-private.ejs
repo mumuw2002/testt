@@ -2,9 +2,6 @@
   <style>
     body {
       background-color: #f7f7f7;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
     }
 
     .chat-container {
@@ -15,34 +12,33 @@
       box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
       border-radius: 16px;
       background-color: #ffffff;
-      overflow: hidden;
     }
 
     .chat-seccon {
+      display: flex;
       width: -webkit-fill-available;
-      display: flex;
-      flex-direction: column;
     }
 
-    .chat-head {
+    .chat-container .chat-head {
+      min-width: 50px;
+    }
+
+    .chat-container .chat-formsubmit {
+      border-top: #efefef 1px solid;
+    }
+
+    .chat-container #chat-sec1 {
+      padding: 0 16px;
+    }
+
+    .chat-container #chat-sec {
       padding: 16px;
-      border-bottom: 1px solid #efefef;
-      background-color: #fafafa;
-    }
-
-    .chat-con {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
     }
 
     .messages {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      max-height: 500px;
       min-height: 400px;
+      max-height: 410px;
+      overflow-y: scroll;
     }
 
     .message {
@@ -56,7 +52,7 @@
     }
 
     .message.other-user {
-      justify-content: flex-start;
+      justify-content: flex-left;
     }
 
     .message-bubble {
@@ -72,8 +68,6 @@
     .message-bubble #chat-nameuser {
       font-size: 14px;
       color: #374151;
-      font-weight: 600;
-      margin-bottom: 4px;
     }
 
     .message.current-user .message-bubble {
@@ -108,44 +102,27 @@
       height: 30px;
       border-radius: 50%;
       margin-right: 10px;
-      object-fit: cover;
-    }
-
-    .chat-formsubmit {
-      padding: 16px;
-      border-top: 1px solid #efefef;
-      background-color: #fafafa;
     }
 
     .chat-form {
       display: flex;
-      align-items: center;
     }
 
     .chat-form input {
+      margin: 0 20px;
+      font-size: 14px;
       flex: 1;
       padding: 10px;
-      border: 1px solid #cecece;
+      border: #cecece solid 1px;
       border-radius: 20px;
-      font-size: 14px;
-      outline: none;
     }
 
     .chat-form button {
-      margin-left: 10px;
+      margin-right: 20px;
       padding: 10px 20px;
       background-color: #007bff;
-      border: none;
       border-radius: 100px;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chat-form button:hover {
-      background-color: #0056b3;
+      border: 1px solid #007bff;
     }
 
     .user-search-results {
@@ -159,32 +136,95 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       margin-top: 5px;
       bottom: 70px;
-      border-radius: 8px;
     }
 
     .user-list {
+      width: 50%;
       list-style: none;
       padding: 0;
       margin: 0;
     }
 
-    .user-list li {
-      padding: 8px 12px;
-      cursor: pointer;
+    .headuser-list {
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .headuser-list h2 {
+      font-size: 18px;
+      margin: 0;
+      align-self: center;
+    }
+
+    .headuser-list button {
+      font-size: 20px;
+      border: none;
+      background-color: #ffffff;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 100px;
+    }
+
+    .headuser-list button:hover {
+      background-color: rgb(243, 244, 246);
+    }
+
+    .user-list ul {
+      list-style-type: none;
+      padding: 8px;
+    }
+
+    .chat-secright {
+      width: 50%;
+    }
+
+    .user-list li {
+      margin-top: 5px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
     }
 
     .user-list li:hover {
       background-color: #f1f1f1;
     }
 
+    .user-list a {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .conmessage {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .nameconuser .conuser {
+      width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-list .profileimage-chat {
+      width: 2.5rem;
+      height: 2.5rem;
+      object-fit: cover;
+      border-radius: 100%;
+    }
+
     .new-message-btn {
-      position: fixed;
+      position: absolute;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      right: 300px;
       z-index: 1000;
       padding: 10px 20px;
       background-color: #007bff;
@@ -200,7 +240,7 @@
     .new-message-btn.show {
       opacity: 1;
       visibility: visible;
-      transform: translateX(-50%) translateY(-100px);
+      transform: translateY(-100px);
     }
 
     .read-status,
@@ -208,112 +248,309 @@
       color: rgb(219 234 254);
     }
 
-    .user-list h4 {
-      padding: 16px;
-      margin: 0;
-      font-size: 18px;
-      color: #333;
-      border-bottom: 1px solid #efefef;
+    .name-chat {
+      font-weight: 500;
     }
 
-    .user-list ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    .notimesaage {
+      justify-self: center;
     }
 
-    .user-list ul li a {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      text-decoration: none;
-      color: #333;
+    .all-chat {
+      min-height: 400px;
+      max-height: 410px;
+      overflow-y: scroll;
     }
 
-    .user-list ul li a:hover {
+    .nameconuser .nameuser {
+      font-size: 16px;
+      font-weight: 500;
+      color: #020817;
+    }
+
+    .nameconuser .conuser {
+      width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 14px;
+      color: #111827b3;
+    }
+
+    .timenotimessage .timemessage {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .user-list li.active {
       background-color: #f1f1f1;
     }
 
-    .user-list ul li a img {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      object-fit: cover;
+    .user-list li.active:hover {
+      background-color: #f1f1f1;
     }
 
-    .new-message-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      padding: 10px 20px;
-      background-color: #007bff;
+    .notimesaage {
+      background-color: #3b82f6;
       color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: none;
+      /* เริ่มต้นให้ซ่อนไว้ก่อน */
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 2px;
     }
 
-    .new-message-btn.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(-100px);
+
+    .user-list li.unread .nameuser {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .user-list li.unread .conuser {
+      color: #111827;
+      font-weight: 500;
     }
   </style>
 </head>
+
 <%- include('../task/task_component/task-navbar.ejs') %>
   <div class="chat-container">
     <div class="chat-seccon">
-      <div class="chat-head" id="chat-sec">
-        <h4>แชทส่วนตัวกับ <%= targetUser.firstName %>
-            <%= targetUser.lastName %>
-        </h4>
-      </div>
-      <div class="chat-con" id="chat-sec1">
-        <div class="messages" id="messages">
-          <% let previousDate=null; %>
-            <% messages.forEach((msg)=> { %>
-              <% const messageDate=new Date(msg.createdAt); %>
-                <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
-                  <div class="date-divider">
-                    <%= formatDate(messageDate) %>
+      <div class="user-list">
+        <div class="headuser-list">
+          <h2>แชท</h2>
+          <button><i class='bx bxs-chevron-right'></i></button>
+        </div>
+        <div class="all-chat">
+          <ul>
+            <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>" data-space-id="<%= spaces._id %>">
+              <a href="/space/item/<%= spaces._id %>/chat">
+                <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
+                <div class="conmessage">
+                  <div class="nameconuser">
+                    <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
+                    </div>
+                    <div class="conuser">
+                      <% if (lastGroupMessage) { %>
+                        <% if (lastGroupMessage.userId && lastGroupMessage.userId._id.toString()===user._id.toString())
+                          { %>
+                          คุณ: <%= lastGroupMessage.message %>
+                            <% } else { %>
+                              <% if (lastGroupMessage.userId) { %>
+                                <%= lastGroupMessage.userId.firstName %>: <%= lastGroupMessage.message %>
+                                    <% } else { %>
+                                      <%= lastGroupMessage.message %>
+                                        <% } %>
+                                          <% } %>
+                                            <% } else { %>
+                                              <% } %>
+                    </div>
                   </div>
-                  <% } %>
-                    <% previousDate=messageDate; %>
-                      <div
-                        class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
-                        data-message-id="<%= msg._id %>">
-                        <% if (msg.userId._id.toString() !==user._id.toString()) { %>
-                          <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
-                            class="avatar">
-                          <% } %>
-                            <div class="message-bubble">
-                              <%= msg.message %>
-                                <div class="message-time">
-                                  <%= formatTime(messageDate) %>
-                                    <% if (msg.userId._id.toString()===user._id.toString()) { %>
-                                      <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
+                  <div class="timenotimessage">
+                    <div class="timemessage">
+                      <% if (lastGroupMessage) { %>
+                        <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
+                          <% } else { %>
+                            <% } %>
+                    </div>
+                    <div class="notimesaage"></div>
+                  </div>
+                </div>
+              </a>
+            </li>
+
+            <% spaces.collaborators.forEach(collab=> { %>
+              <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
+                <li class="<%= currentChatUserId === collab.user._id.toString() ? 'active' : '' %>"
+                  data-user-id="<%= collab.user._id %>"> <a
+                    href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
+                    <img class="profileimage-chat" src="<%= collab.user.profileImage %>" alt="Profile" width="30">
+                    <div class="conmessage">
+                      <div class="nameconuser">
+                        <div class="name-chat nameuser">
+                          <%= collab.user.firstName %>
+                            <%= collab.user.lastName %>
+                        </div>
+                        <div class="conuser">
+                          <% if (collab.lastMessage) { %>
+                            <% if (collab.lastMessageSender &&
+                              collab.lastMessageSender._id.toString()===user._id.toString()) { %>
+                              คุณ: <%= collab.lastMessage %>
+                                <% } else { %>
+                                  <%= collab.lastMessage %>
+                                    <% } %>
                                       <% } %>
-                                </div>
-                            </div>
+                        </div>
                       </div>
-                      <% }); %>
+                      <div class="timenotimessage">
+                        <div class="timemessage">
+                          <% if (collab.lastMessageTime) { %>
+                            <%= formatTime(new Date(collab.lastMessageTime)) %>
+                              <% } %>
+                        </div>
+                        <div class="notimesaage"></div>
+                      </div>
+                    </div>
+
+                  </a>
+                </li>
+                <% } %>
+                  <% }); %>
+          </ul>
         </div>
       </div>
-
-      <div class="chat-formsubmit" id="chat-sec">
-        <form class="chat-form" id="chatForm">
-          <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required autocomplete="off">
-          <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
-        </form>
+      <div class="chat-secright">
+        <div class="chat-head" id="chat-sec">
+          <h4>แชทส่วนตัวกับ <%= targetUser.firstName %>
+              <%= targetUser.lastName %>
+          </h4>
+        </div>
+        <div class="chat-con" id="chat-sec1">
+          <div class="messages" id="messages">
+            <% let previousDate=null; %>
+              <% messages.forEach((msg)=> { %>
+                <% const messageDate=new Date(msg.createdAt); %>
+                  <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
+                    <div class="date-divider">
+                      <%= formatDate(messageDate) %>
+                    </div>
+                    <% } %>
+                      <% previousDate=messageDate; %>
+                        <div
+                          class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
+                          data-message-id="<%= msg._id %>">
+                          <% if (msg.userId._id.toString() !==user._id.toString()) { %>
+                            <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
+                              class="avatar">
+                            <% } %>
+                              <div class="message-bubble">
+                                <% if (msg.userId._id.toString() !==user._id.toString()) { %>
+                                  <div id="chat-nameuser">
+                                    <%= msg.userId.firstName %>
+                                      <%= msg.userId.lastName %>
+                                  </div>
+                                  <% } %>
+                                    <%= msg.message %>
+                                      <div class="message-time">
+                                        <%= formatTime(messageDate) %>
+                                          <% if (msg.userId._id.toString()===user._id.toString()) { %>
+                                            <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
+                                            <% } %>
+                                      </div>
+                              </div>
+                        </div>
+                        <% }); %>
+          </div>
+        </div>
+        <div class="chat-formsubmit" id="chat-sec">
+          <form class="chat-form" id="chatForm">
+            <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
+              autocomplete="off">
+            <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
+
+  <script>
+    // เมื่อโหลดหน้าเว็บเสร็จ
+    document.addEventListener('DOMContentLoaded', () => {
+      // ตรวจสอบ URL ปัจจุบันเพื่อกำหนด active item
+      const path = window.location.pathname;
+      const chatItems = document.querySelectorAll('.user-list li');
+
+      chatItems.forEach(item => {
+        // ลบคลาส active ออกจากทั้งหมดก่อน
+        item.classList.remove('active');
+
+        // ตรวจสอบว่าเป็นลิงก์ปัจจุบันหรือไม่
+        const link = item.querySelector('a');
+        if (link && link.getAttribute('href') === path) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // เมื่อคลิกที่รายการแชท
+    document.querySelectorAll('.user-list li').forEach(item => {
+      item.addEventListener('click', function () {
+        // ลบคลาส active ออกจากทั้งหมด
+        document.querySelectorAll('.user-list li').forEach(li => {
+          li.classList.remove('active');
+        });
+
+        // เพิ่มคลาส active ให้กับรายการที่คลิก
+        this.classList.add('active');
+      });
+    });
+  </script>
+
+  <script>
+    socket.on('update last group message', (message) => {
+      console.log('🔄 อัปเดตข้อความล่าสุดของแชทกลุ่ม:', message);
+
+      // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
+      if (!message || !message.spaceId) {
+        console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
+        return;
+      }
+
+      // หา li ที่เป็นของแชทกลุ่ม
+      const groupChatElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .conuser');
+      const groupTimeElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .timemessage');
+
+      if (groupChatElement) {
+        // ตรวจสอบว่ามี userId ในข้อความหรือไม่
+        if (message.userId && message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
+          groupChatElement.textContent = 'คุณ: ' + (message.message || 'ไม่มีข้อความล่าสุด');
+        } else {
+          // ถ้าไม่มีข้อมูลผู้ส่ง หรือไม่ใช่ผู้ใช้ปัจจุบัน
+          const senderName = message.userId ? message.userId.firstName + ': ' : '';
+          groupChatElement.textContent = senderName + (message.message || 'ไม่มีข้อความล่าสุด');
+        }
+      }
+
+      if (groupTimeElement && message.createdAt) {
+        groupTimeElement.textContent = formatTime(new Date(message.createdAt));
+      }
+    });
+
+    socket.on('update last private message', (message) => {
+      console.log('🔄 อัปเดตข้อความล่าสุดของแชทส่วนตัว:', message);
+
+      // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
+      if (!message || !message.userId || !message.targetUserId) {
+        console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
+        return;
+      }
+
+      // หา userId ของผู้สนทนา
+      const otherUserId = message.userId._id && message.userId._id.toString() === '<%= user._id %>'
+        ? (message.targetUserId._id || '').toString()
+        : (message.userId._id || '').toString();
+
+      // หา li ที่เป็นของแชทเดี่ยว
+      const privateChatElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .conuser');
+      const privateTimeElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .timemessage');
+
+      if (privateChatElement) {
+        if (message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
+          privateChatElement.textContent = 'คุณ: ' + (message.message || '');
+        } else {
+          privateChatElement.textContent = message.message || '';
+        }
+      }
+      if (privateTimeElement && message.createdAt) {
+        privateTimeElement.textContent = formatTime(new Date(message.createdAt));
+      }
+    });
+  </script>
 
   <script>
     // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
@@ -356,53 +593,7 @@
       });
     });
 
-    // รับข้อความส่วนตัวใหม่
-    socket.on('private message', (msg) => {
-      const messagesContainer = document.getElementById('messages');
-      const messageDate = new Date(msg.createdAt);
 
-      // ตรวจสอบการเปลี่ยนวัน
-      const lastMessage = messagesContainer.lastElementChild;
-      if (lastMessage && lastMessage.classList.contains('message')) {
-        const lastMessageDate = new Date(lastMessage.dataset.timestamp);
-        if (isNewDay(lastMessageDate, messageDate)) {
-          // แสดงวันที่เมื่อเปลี่ยนวัน
-          const dateDivider = document.createElement('div');
-          dateDivider.classList.add('date-divider');
-          dateDivider.textContent = formatDate(messageDate);
-          messagesContainer.appendChild(dateDivider);
-        }
-      }
-
-
-      // สร้าง element สำหรับข้อความใหม่
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('message', msg.userId._id === '<%= user._id %>' ? 'current-user' : 'other-user');
-      messageElement.dataset.messageId = msg._id;
-      messageElement.dataset.timestamp = msg.createdAt;
-
-      // กำหนดเนื้อหาของข้อความ
-      messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
-    <img src="${msg.userId.profileImage}" alt="User" class="avatar">
-    <div class="message-bubble">
-      <div id="chat-nameuser">${msg.userId.firstName} ${msg.userId.lastName}</div>
-      ${msg.message}
-      <div class="message-time">${formatTime(messageDate)}</div>
-    </div>
-  ` : `
-    <div class="message-bubble">
-      ${msg.message}
-      <div class="message-time">
-        ${formatTime(messageDate)}
-        <span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
-      </div>
-    </div>
-  `;
-
-      // เพิ่มข้อความใหม่เข้าไปใน container
-      messagesContainer.appendChild(messageElement);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
 
     // ส่งข้อความส่วนตัว
     document.getElementById('chatForm').addEventListener('submit', (e) => {
@@ -417,36 +608,6 @@
       document.getElementById('messageInput').value = '';
     });
 
-
-    // ฟังก์ชันส่งข้อความ
-    document.querySelector('.chat-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const message = messageInput.value;
-      const spaceId = '<%= spaces._id %>';
-      const userId = '<%= user._id %>';
-      const targetUserId = '<%= targetUser._id %>';
-
-      try {
-        const response = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/send`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message,
-          }),
-        });
-        if (response.ok) {
-          messageInput.value = '';
-        } else {
-          console.error('Failed to send message');
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-      } finally {
-        isSending = false;
-      }
-    });
-
     // รับสถานะข้อความที่ถูกอ่าน
     socket.on('private message read', (data) => {
       const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
@@ -457,44 +618,19 @@
         }
       }
     });
-
   </script>
 
   <script>
     const messagesContainer = document.getElementById('messages');
+    const chatSecRight = document.querySelector('.chat-secright');
 
-    // บันทึกตำแหน่งการเลื่อนใน localStorage
-    function saveScrollPosition() {
-      const scrollPosition = messagesContainer.scrollTop;
-      localStorage.setItem('chatScrollPosition', scrollPosition);
-    }
-
-    // กู้คืนตำแหน่งการเลื่อน
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedScrollPosition = localStorage.getItem('chatScrollPosition');
-      if (savedScrollPosition) {
-        messagesContainer.scrollTop = savedScrollPosition;
-      }
-    });
-
-    // บันทึกตำแหน่งเมื่อผู้ใช้เลื่อน
-    messagesContainer.addEventListener('scroll', saveScrollPosition);
-
-    // ลบข้อมูลตำแหน่งเมื่อปิดหน้า
-    window.addEventListener('beforeunload', saveScrollPosition);
-
-    const chatSection = document.getElementById("chat-sec1");
-    // สร้างปุ่ม newMessageButton
+    // สร้างปุ่มเลื่อนลงล่าง
     const newMessageButton = document.createElement("button");
     newMessageButton.innerHTML = "<i class='bx bxs-chevron-down'></i>";
     newMessageButton.classList.add("new-message-btn");
+    chatSecRight.appendChild(newMessageButton);
 
-    // เพิ่มปุ่มเข้าไปใน DOM
-    chatSection.appendChild(newMessageButton);
-
-    // ตรวจสอบตำแหน่งการเลื่อน
-    let userScrolledUp = false;
-
+    // ฟังก์ชันตรวจสอบตำแหน่งการเลื่อน
     function checkScrollPosition() {
       const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
       if (!nearBottom) {
@@ -504,11 +640,161 @@
       }
     }
 
-    messagesContainer.addEventListener("scroll", checkScrollPosition);
+    // บันทึกตำแหน่งการเลื่อน
+    function saveScrollPosition() {
+      localStorage.setItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`, messagesContainer.scrollTop);
+    }
 
-    // เมื่อคลิกที่ปุ่ม newMessageButton
+    // กู้คืนตำแหน่งการเลื่อนเมื่อโหลดหน้า
+    function restoreScrollPosition() {
+      const savedPosition = localStorage.getItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`);
+      if (savedPosition) {
+        messagesContainer.scrollTop = parseInt(savedPosition);
+      } else {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }
+
+    // เรียกใช้เมื่อโหลดหน้า
+    restoreScrollPosition();
+    checkScrollPosition();
+
+    // จัดการเหตุการณ์การเลื่อน
+    messagesContainer.addEventListener("scroll", () => {
+      checkScrollPosition();
+      saveScrollPosition();
+    });
+
+    // เมื่อคลิกปุ่มเลื่อนลงล่าง
     newMessageButton.addEventListener("click", () => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
       newMessageButton.classList.remove("show");
+      saveScrollPosition();
+    });
+
+    // บันทึกตำแหน่งเมื่อเปลี่ยนแท็บหรือปิดหน้าต่าง
+    window.addEventListener("beforeunload", saveScrollPosition);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === 'hidden') {
+        saveScrollPosition();
+      }
+    });
+
+    // แก้ไขส่วนรับข้อความใหม่
+    socket.on('private message', (msg) => {
+      const messagesContainer = document.getElementById('messages');
+      const messageDate = new Date(msg.createdAt);
+
+      // ตรวจสอบการเปลี่ยนวัน
+      const lastMessage = messagesContainer.lastElementChild;
+      if (lastMessage && lastMessage.classList.contains('message')) {
+        const lastMessageDate = new Date(lastMessage.dataset.timestamp);
+        if (isNewDay(lastMessageDate, messageDate)) {
+          const dateDivider = document.createElement('div');
+          dateDivider.classList.add('date-divider');
+          dateDivider.textContent = formatDate(messageDate);
+          messagesContainer.appendChild(dateDivider);
+        }
+      }
+
+      // สร้าง element สำหรับข้อความใหม่
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', msg.userId._id === '<%= user._id %>' ? 'current-user' : 'other-user');
+      messageElement.dataset.messageId = msg._id;
+      messageElement.dataset.timestamp = msg.createdAt;
+
+      messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
+      <img src="${msg.userId.profileImage}" alt="User" class="avatar">
+      <div class="message-bubble">
+        <div id="chat-nameuser">${msg.userId.firstName} ${msg.userId.lastName}</div>
+        ${msg.message}
+        <div class="message-time">${formatTime(messageDate)}</div>
+      </div>
+    ` : `
+      <div class="message-bubble">
+        ${msg.message}
+        <div class="message-time">
+          ${formatTime(messageDate)}
+          <span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
+        </div>
+      </div>
+    `;
+
+      messagesContainer.appendChild(messageElement);
+
+      // เลื่อนลงล่างเฉพาะเมื่อผู้ใช้ไม่ได้เลื่อนขึ้นดูข้อความเก่า
+      const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+      if (nearBottom) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+      saveScrollPosition();
+
+      // อัปเดตสถานะ active เมื่อได้รับข้อความใหม่
+      document.querySelectorAll('.user-list li').forEach(li => {
+        li.classList.remove('active');
+
+        // ตรวจสอบว่าเป็นแชทกับผู้ส่งข้อความหรือไม่
+        const userId = li.dataset.userId;
+        if (userId &&
+          (userId === msg.userId._id.toString() ||
+            userId === msg.targetUserId.toString())) {
+          li.classList.add('active');
+        }
+      });
+    });
+  </script>
+
+  <script>
+    // ฟังก์ชันดึงจำนวนข้อความที่ยังไม่อ่าน
+    async function fetchUnreadCounts() {
+      try {
+        const spaceId = '<%= spaces._id %>';
+        const userId = '<%= user._id %>';
+
+        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
+        const groupResponse = await fetch(`/space/item/${spaceId}/chat/unread-count`);
+        const groupData = await groupResponse.json();
+
+        if (groupData.success) {
+          const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"] .notimesaage');
+          if (groupChatElement) {
+            groupChatElement.textContent = groupData.unreadCount > 0 ? groupData.unreadCount : '';
+          }
+        }
+
+        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัวสำหรับแต่ละผู้ใช้
+        const collaborators = document.querySelectorAll('li[data-user-id]');
+        collaborators.forEach(async (collab) => {
+          const targetUserId = collab.dataset.userId;
+          const privateResponse = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/unread-count`);
+          const privateData = await privateResponse.json();
+
+          if (privateData.success) {
+            const privateChatElement = collab.querySelector('.notimesaage');
+            if (privateChatElement) {
+              privateChatElement.textContent = privateData.unreadCount > 0 ? privateData.unreadCount : '';
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error('Error fetching unread counts:', error);
+      }
+    }
+
+    // เรียกฟังก์ชันเมื่อโหลดหน้า
+    document.addEventListener('DOMContentLoaded', fetchUnreadCounts);
+
+    // อัปเดตจำนวนข้อความที่ยังไม่อ่านเมื่อได้รับข้อความใหม่
+    socket.on('new message', () => {
+      fetchUnreadCounts();
+    });
+
+    socket.on('update last group message', () => {
+      fetchUnreadCounts();
+    });
+
+    socket.on('update last private message', () => {
+      fetchUnreadCounts();
     });
   </script>

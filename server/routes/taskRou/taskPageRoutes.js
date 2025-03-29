@@ -23,4 +23,9 @@ router.get('/space/item/:id/chat/private/:targetUserId', isLoggedIn, chatControl
 router.post('/space/item/:id/chat/private/:targetUserId/send', isLoggedIn, chatController.sendPrivateMessage);
 router.post('/space/item/:id/chat/private/:messageId/read', isLoggedIn, chatController.markPrivateMessageAsRead);
 
+router.get('/space/item/:id/chat/unread-count', isLoggedIn, chatController.getUnreadGroupMessageCount);
+router.get('/space/item/:id/chat/private/:targetUserId/unread-count', isLoggedIn, chatController.getUnreadPrivateMessageCount);
+router.post('/:id/chat/mark-group-read', chatController.markGroupMessagesAsRead);
+router.post('/:id/chat/private/:targetUserId/mark-as-read', chatController.markPrivateMessagesAsRead);
+
 module.exports = router;

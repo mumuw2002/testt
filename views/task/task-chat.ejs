@@ -210,19 +210,17 @@
   }
 
 
-  .nameconuser .conuser {
-    width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-
   .user-list .profileimage-chat {
     width: 2.5rem;
     height: 2.5rem;
     object-fit: cover;
     border-radius: 100%;
   }
+
+  .user-list img {}
+
+
+
 
   .new-message-btn {
     position: absolute;
@@ -265,12 +263,58 @@
     overflow-y: scroll;
   }
 
+  .nameconuser .nameuser {
+    font-size: 16px;
+    font-weight: 500;
+    color: #020817;
+  }
+
   .nameconuser .conuser {
     width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    /* เพิ่มบรรทัดนี้เพื่อป้องกันการขึ้นบรรทัดใหม่ */
+    font-size: 14px;
+    color: #111827b3;
+  }
+
+  .timenotimessage .timemessage {
+    font-size: 12px;
+    color: #6B7280;
+  }
+
+  .user-list li.active {
+    background-color: #f1f1f1;
+  }
+
+  .user-list li.active:hover {
+    background-color: #f1f1f1;
+  }
+
+  .notimesaage {
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none;
+    /* เริ่มต้นให้ซ่อนไว้ก่อน */
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+
+  .user-list li.unread .nameuser {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .user-list li.unread .conuser {
+    color: #111827;
+    font-weight: 500;
   }
 </style>
 </head>
@@ -286,8 +330,7 @@
           </div>
           <div class="all-chat">
             <ul>
-
-              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>">
+              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>" data-space-id="<%= spaces._id %>">
                 <a href="/space/item/<%= spaces._id %>/chat">
                   <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
                   <div class="conmessage">
@@ -296,10 +339,18 @@
                       </div>
                       <div class="conuser">
                         <% if (lastGroupMessage) { %>
-                          <%= lastGroupMessage.message %>
-                            <% } else { %>
-                              ไม่มีข้อความล่าสุด
-                              <% } %>
+                          <% if (lastGroupMessage.userId &&
+                            lastGroupMessage.userId._id.toString()===user._id.toString()) { %>
+                            คุณ: <%= lastGroupMessage.message %>
+                              <% } else { %>
+                                <% if (lastGroupMessage.userId) { %>
+                                  <%= lastGroupMessage.userId.firstName %>: <%= lastGroupMessage.message %>
+                                      <% } else { %>
+                                        <%= lastGroupMessage.message %>
+                                          <% } %>
+                                            <% } %>
+                                              <% } else { %>
+                                                <% } %>
                       </div>
                     </div>
                     <div class="timenotimessage">
@@ -307,10 +358,9 @@
                         <% if (lastGroupMessage) { %>
                           <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
                             <% } else { %>
-                              <%= formatTime(new Date()) %>
-                                <% } %>
+                              <% } %>
                       </div>
-                      <div class="notimesaage">123</div>
+                      <div class="notimesaage"></div>
                     </div>
                   </div>
                 </a>
@@ -318,8 +368,9 @@
 
               <% spaces.collaborators.forEach(collab=> { %>
                 <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
-                  <li>
-                    <a href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
+                  <li class="<%= currentChatUserId === collab.user._id.toString() ? 'active' : '' %>"
+                    data-user-id="<%= collab.user._id %>"> <a
+                      href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
                       <img class="profileimage-chat" src="<%= collab.user.profileImage %>" alt="Profile" width="30">
                       <div class="conmessage">
                         <div class="nameconuser">
@@ -329,9 +380,14 @@
                           </div>
                           <div class="conuser">
                             <% if (collab.lastMessage) { %>
-                              <%= collab.lastMessage %>
-                                <% } else { %>
-                                  <% } %>
+                              <% if (collab.lastMessageSender &&
+                                collab.lastMessageSender._id.toString()===user._id.toString()) { %>
+                                คุณ: <%= collab.lastMessage %>
+                                  <% } else { %>
+                                    <%= collab.lastMessage %>
+                                      <% } %>
+                                        <% } else { %>
+                                          <% } %>
                           </div>
                         </div>
                         <div class="timenotimessage">
@@ -340,7 +396,7 @@
                               <%= formatTime(new Date(collab.lastMessageTime)) %>
                                 <% } %>
                           </div>
-                          <div class="notimesaage">123</div>
+                          <div class="notimesaage"></div>
                         </div>
                       </div>
 
@@ -352,7 +408,9 @@
           </div>
         </div>
         <div class="chat-secright">
-          <div class="chat-head" id="chat-sec"></div>
+          <div class="chat-head" id="chat-sec">
+            แชทกลุ่ม <%= spaces.projectName %>
+          </div>
           <div class="chat-con" id="chat-sec1">
             <div class="messages" id="messages">
               <% let previousDate=null; %>
@@ -415,7 +473,38 @@
       </div>
 
     </div>
+    <script>
+      // เมื่อโหลดหน้าเว็บเสร็จ
+      document.addEventListener('DOMContentLoaded', () => {
+        // ตรวจสอบ URL ปัจจุบันเพื่อกำหนด active item
+        const path = window.location.pathname;
+        const chatItems = document.querySelectorAll('.user-list li');
 
+        chatItems.forEach(item => {
+          // ลบคลาส active ออกจากทั้งหมดก่อน
+          item.classList.remove('active');
+
+          // ตรวจสอบว่าเป็นลิงก์ปัจจุบันหรือไม่
+          const link = item.querySelector('a');
+          if (link && link.getAttribute('href') === path) {
+            item.classList.add('active');
+          }
+        });
+      });
+
+      // เมื่อคลิกที่รายการแชท
+      document.querySelectorAll('.user-list li').forEach(item => {
+        item.addEventListener('click', function () {
+          // ลบคลาส active ออกจากทั้งหมด
+          document.querySelectorAll('.user-list li').forEach(li => {
+            li.classList.remove('active');
+          });
+
+          // เพิ่มคลาส active ให้กับรายการที่คลิก
+          this.classList.add('active');
+        });
+      });
+    </script>
 
     <script>
       // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
@@ -607,9 +696,9 @@
           if (user._id.toString() !== '<%= user._id %>') {
             const li = document.createElement('li');
             li.innerHTML = `
-<img src="${user.profileImage || '/img/profileImage/Profile.jpeg'}" alt="User" class="avatar" style="width: 20px; height: 20px;">
-<span>${user.firstName} ${user.lastName}</span>
-`;
+            <img src="${user.profileImage || '/img/profileImage/Profile.jpeg'}" alt="User" class="avatar" style="width: 20px; height: 20px;">
+            <span>${user.firstName} ${user.lastName}</span>
+            `;
             li.dataset.userId = user._id; // เก็บ userid ใน dataset
             li.addEventListener('click', () => selectUser(user));
             userList.appendChild(li);
@@ -657,7 +746,7 @@
         const value = e.target.value.trim();
         const atIndex = value.lastIndexOf('@');
 
-        syncSelectedUsersWithInput(); // ✅ sync ทุกครั้งที่ input เปลี่ยน
+        syncSelectedUsersWithInput();
 
         if (atIndex !== -1) {
           const query = value.slice(atIndex + 1).trim();
@@ -752,38 +841,208 @@
     </script>
 
     <script>
-      // อัปเดตข้อความล่าสุดของแชทกลุ่ม
       socket.on('update last group message', (message) => {
-        console.log('Received group message update:', message);
-        const groupChatElement = document.querySelector('li.active .conuser');
-        const groupTimeElement = document.querySelector('li.active .timemessage');
+        console.log('🔄 อัปเดตข้อความล่าสุดของแชทกลุ่ม:', message);
+
+        // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
+        if (!message || !message.spaceId) {
+          console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
+          return;
+        }
+
+        // หา li ที่เป็นของแชทกลุ่ม
+        const groupChatElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .conuser');
+        const groupTimeElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .timemessage');
 
         if (groupChatElement) {
-          groupChatElement.textContent = message.message || 'ไม่มีข้อความล่าสุด';
+          // ตรวจสอบว่ามี userId ในข้อความหรือไม่
+          if (message.userId && message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
+            groupChatElement.textContent = 'คุณ: ' + (message.message || 'ไม่มีข้อความล่าสุด');
+          } else {
+            // ถ้าไม่มีข้อมูลผู้ส่ง หรือไม่ใช่ผู้ใช้ปัจจุบัน
+            const senderName = message.userId ? message.userId.firstName + ': ' : '';
+            groupChatElement.textContent = senderName + (message.message || 'ไม่มีข้อความล่าสุด');
+          }
         }
-        if (groupTimeElement) {
+
+        if (groupTimeElement && message.createdAt) {
           groupTimeElement.textContent = formatTime(new Date(message.createdAt));
         }
       });
 
-      // อัปเดตข้อความล่าสุดของแชทส่วนตัว
       socket.on('update last private message', (message) => {
-        console.log('Received private message update:', message);
+        console.log('🔄 อัปเดตข้อความล่าสุดของแชทส่วนตัว:', message);
 
-        // หา userId ของผู้สนทนาด้วย (ไม่ใช่ผู้ส่งข้อความปัจจุบัน)
-        const otherUserId = message.userId._id.toString() === '<%= user._id %>'
+        // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
+        if (!message || !message.userId || !message.targetUserId) {
+          console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
+          return;
+        }
+
+        // หา userId ของผู้สนทนา
+        const otherUserId = message.userId._id && message.userId._id.toString() === '<%= user._id %>'
+          ? (message.targetUserId._id || '').toString()
+          : (message.userId._id || '').toString();
+
+        // หา li ที่เป็นของแชทเดี่ยว
+        const privateChatElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .conuser');
+        const privateTimeElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .timemessage');
+
+        if (privateChatElement) {
+          if (message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
+            privateChatElement.textContent = 'คุณ: ' + (message.message || '');
+          } else {
+            privateChatElement.textContent = message.message || '';
+          }
+        }
+        if (privateTimeElement && message.createdAt) {
+          privateTimeElement.textContent = formatTime(new Date(message.createdAt));
+        }
+      });
+    </script>
+
+    <script>
+      // ฟังก์ชันดึงจำนวนข้อความที่ยังไม่อ่าน
+      // Update the fetchUnreadCounts function in your existing script
+      async function fetchUnreadCounts() {
+        try {
+          const spaceId = '<%= spaces._id %>';
+          const userId = '<%= user._id %>';
+          const path = window.location.pathname;
+
+          // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
+          const groupResponse = await fetch(`/space/item/${spaceId}/chat/unread-count`);
+          const groupData = await groupResponse.json();
+
+          const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"]');
+          if (groupChatElement) {
+            const notiElement = groupChatElement.querySelector('.notimesaage');
+
+            // ตรวจสอบว่าผู้ใช้กำลังอยู่ในหน้าแชทกลุ่มหรือไม่
+            const isInGroupChat = path === `/space/item/${spaceId}/chat`;
+
+            if (groupData.unreadCount > 0 && !isInGroupChat) {
+              groupChatElement.classList.add('unread');
+              notiElement.textContent = groupData.unreadCount;
+              notiElement.style.display = 'flex';
+            } else {
+              groupChatElement.classList.remove('unread');
+              notiElement.style.display = 'none';
+            }
+          }
+
+          // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัว
+          const collaborators = document.querySelectorAll('li[data-user-id]');
+          collaborators.forEach(async (collab) => {
+            const targetUserId = collab.dataset.userId;
+            const privateResponse = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/unread-count`);
+            const privateData = await privateResponse.json();
+
+            if (privateData.success) {
+              const notiElement = collab.querySelector('.notimesaage');
+
+              // ตรวจสอบว่าผู้ใช้กำลังอยู่ในแชทส่วนตัวกับผู้ใช้นี้หรือไม่
+              const isInPrivateChat = path === `/space/item/${spaceId}/chat/private/${targetUserId}`;
+
+              if (privateData.unreadCount > 0 && !isInPrivateChat) {
+                collab.classList.add('unread');
+                notiElement.textContent = privateData.unreadCount;
+                notiElement.style.display = 'flex';
+              } else {
+                collab.classList.remove('unread');
+                notiElement.style.display = 'none';
+              }
+            }
+          });
+
+        } catch (error) {
+          console.error('Error fetching unread counts:', error);
+        }
+      }
+
+
+      // Add this function to mark messages as read when a chat is opened
+      async function markMessagesAsRead() {
+        const path = window.location.pathname;
+        const spaceId = '<%= spaces._id %>';
+        const userId = '<%= user._id %>';
+
+        try {
+          // ตรวจสอบว่าเป็นแชทส่วนตัวหรือไม่
+          const privateChatMatch = path.match(/\/space\/item\/[^/]+\/chat\/private\/([^/]+)/);
+
+          if (privateChatMatch) {
+            // แชทส่วนตัว - ทำเครื่องหมายว่าอ่านแล้ว
+            const targetUserId = privateChatMatch[1];
+            await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/mark-as-read`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId })
+            });
+          } else {
+            // แชทกลุ่ม - ทำเครื่องหมายว่าอ่านแล้ว
+            await fetch(`/space/item/${spaceId}/chat/mark-group-read`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId })
+            });
+          }
+
+          // อัปเดตสถานะเฉพาะแชทที่เปิดอยู่เท่านั้น
+          const currentChatElement = document.querySelector('.user-list li.active');
+          if (currentChatElement) {
+            const notiElement = currentChatElement.querySelector('.notimesaage');
+            if (notiElement) {
+              notiElement.style.display = 'none';
+              currentChatElement.classList.remove('unread');
+            }
+          }
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
+      }
+
+      // Call this when the page loads and when a chat is opened
+      document.addEventListener('DOMContentLoaded', () => {
+        fetchUnreadCounts();
+
+        // Also mark as read when switching between chats
+        document.querySelectorAll('.user-list li').forEach(item => {
+          item.addEventListener('click', function () {
+            // ตรวจสอบว่าไม่ใช่การคลิกที่แชทเดิม
+            if (!this.classList.contains('active')) {
+              setTimeout(markMessagesAsRead, 300);
+            }
+          });
+        });
+      });
+
+      // Update the socket.io listeners to refresh unread counts
+      socket.on('new message', () => {
+        const path = window.location.pathname;
+        const spaceId = '<%= spaces._id %>';
+
+        // ตรวจสอบว่าข้อความใหม่ไม่ใช่ในแชทที่กำลังเปิดอยู่
+        if (!path.includes('/chat/private/') && !path.endsWith('/chat')) {
+          fetchUnreadCounts();
+        }
+
+      });
+      socket.on('update last group message', (message) => {
+        // อัปเดตเฉพาะถ้าไม่ใช่แชทกลุ่มที่กำลังเปิดอยู่
+        if (!window.location.pathname.endsWith('/chat')) {
+          fetchUnreadCounts();
+        }
+      });
+      socket.on('update last private message', (message) => {
+        const path = window.location.pathname;
+        const targetUserId = message.userId._id.toString() === '<%= user._id %>'
           ? message.targetUserId._id.toString()
           : message.userId._id.toString();
 
-        // หา element ที่เกี่ยวข้อง
-        const privateChatElement = document.querySelector(`a[href*="/chat/private/${otherUserId}"] .conuser`);
-        const privateTimeElement = document.querySelector(`a[href*="/chat/private/${otherUserId}"] .timemessage`);
-
-        if (privateChatElement) {
-          privateChatElement.textContent = message.message || '';
-        }
-        if (privateTimeElement) {
-          privateTimeElement.textContent = formatTime(new Date(message.createdAt));
+        // อัปเดตเฉพาะถ้าไม่ใช่แชทส่วนตัวที่กำลังเปิดอยู่
+        if (!path.includes(`/chat/private/${targetUserId}`)) {
+          fetchUnreadCounts();
         }
       });
     </script>

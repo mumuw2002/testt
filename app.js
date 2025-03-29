@@ -227,11 +227,6 @@ io.on('connection', (socket) => {
       type: type
     });
 
-    await newMessage.save();
-    const populatedMessage = await Chat.findById(newMessage._id)
-      .populate('userId', 'firstName lastName profileImage')
-      .populate('mentionedUsers', 'firstName lastName')
-      .lean();
 
     if (type === 'group') {
       io.emit('chat message', populatedMessage);
@@ -239,7 +234,20 @@ io.on('connection', (socket) => {
     } else if (type === 'private') {
       io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
       io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
-      io.emit('update last private message', populatedMessage);
+      io.emit('update last private message', {
+        userId: {
+          _id: populatedMessage.userId._id.toString(),
+          firstName: populatedMessage.userId.firstName,
+          lastName: populatedMessage.userId.lastName
+        },
+        targetUserId: {
+          _id: populatedMessage.targetUserId._id.toString(),
+          firstName: populatedMessage.targetUserId.firstName,
+          lastName: populatedMessage.targetUserId.lastName
+        },
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt
+      });
     }
 
     // แจ้งเตือนผู้ใช้ที่ถูก mention
@@ -268,6 +276,8 @@ io.on('connection', (socket) => {
         });
       }
     });
+
+    io.emit('new unread message', { spaceId, type });
   });
 
   // เมื่อผู้ใช้อยู่ในหน้าแชทส่วนตัว
@@ -306,9 +316,6 @@ io.on('connection', (socket) => {
     }
   });
 
-
-
-
   // เมื่อผู้ใช้ออกจากหน้าแชทส่วนตัว
   socket.on('user left private chat', ({ userId, targetUserId }) => {
     socket.leave(`private_${userId}_${targetUserId}`);
@@ -340,9 +347,25 @@ io.on('connection', (socket) => {
       .populate('targetUserId', 'firstName lastName profileImage')
       .lean();
 
-    // ส่งข้อความไปยังผู้ใช้ทั้งสองคน
-    io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
-    io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
+
+    if (newMessage.type === 'private') {
+      io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
+      io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
+      io.emit('update last private message', {
+        userId: {
+          _id: populatedMessage.userId._id.toString(),
+          firstName: populatedMessage.userId.firstName,
+          lastName: populatedMessage.userId.lastName
+        },
+        targetUserId: {
+          _id: populatedMessage.targetUserId._id.toString(),
+          firstName: populatedMessage.targetUserId.firstName,
+          lastName: populatedMessage.targetUserId.lastName
+        },
+        message: populatedMessage.message,
+        createdAt: populatedMessage.createdAt
+      });
+    }
 
     // ตรวจสอบว่า targetUserId อยู่ในหน้าแชทหรือไม่
     if (usersInChat.has(targetUserId) && usersInChat.get(targetUserId).has(userId)) {
@@ -354,6 +377,43 @@ io.on('connection', (socket) => {
         messageId: newMessage._id.toString(),
         readByCount: newMessage.readBy.length,
       });
+    }
+    io.to(targetUserId).emit('new unread private message', { spaceId, senderId: userId });
+  });
+
+  socket.on('mark messages as read', async ({ spaceId, userId, targetUserId }) => {
+    try {
+      if (targetUserId) {
+        // Mark private messages as read
+        await Chat.updateMany(
+          {
+            spaceId,
+            $or: [
+              { userId: targetUserId, targetUserId: userId },
+              { userId: userId, targetUserId: targetUserId }
+            ],
+            type: 'private',
+            readBy: { $ne: userId },
+            userId: { $ne: userId }
+          },
+          { $push: { readBy: userId } }
+        );
+      } else {
+        // Mark group messages as read
+        await Chat.updateMany(
+          {
+            spaceId,
+            type: 'group',
+            readBy: { $ne: userId },
+            userId: { $ne: userId }
+          },
+          { $push: { readBy: userId } }
+        );
+      }
+
+      io.emit('messages marked as read', { spaceId, userId, targetUserId });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
     }
   });
 });
