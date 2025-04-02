@@ -2,6 +2,8 @@ const Chat = require('../models/Chat');
 const Spaces = require('../models/Space');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const formatDate = (date) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -26,6 +28,76 @@ const isNewDay = (date1, date2) => {
   );
 };
 
+exports.uploadFiles = async (req, res) => {
+  try {
+    const spaceId = req.params.id;
+    const userId = req.user.id;
+    const message = req.body.message;
+    const mentionedUserIds = req.body.mentionedUsers || [];
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ success: false, error: "No files uploaded" });
+    }
+
+    // สร้าง array ของไฟล์ข้อมูล
+    const fileData = files.map(file => ({
+      url: `/uploads/${file.filename}`,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      filename: file.filename
+    }));
+
+    // สร้างข้อความใหม่พร้อมไฟล์แนบ
+    const newMessage = new Chat({
+      spaceId,
+      userId,
+      message: message || '', // อนุญาตให้ส่งข้อความว่างได้ถ้ามีไฟล์แนบ
+      files: fileData,
+      readBy: [],
+      mentionedUsers: mentionedUserIds,
+      type: 'group'
+    });
+
+    await newMessage.save();
+
+    // Populate ข้อมูลผู้ใช้
+    const populatedMessage = await Chat.findById(newMessage._id)
+      .populate('userId', 'firstName lastName profileImage')
+      .populate('readBy', 'firstName lastName')
+      .populate('mentionedUsers', 'firstName lastName profileImage')
+      .lean();
+
+    // ส่งข้อความผ่าน Socket.io
+    const io = req.app.get('io');
+    io.emit('chat message', populatedMessage);
+    io.emit('update last group message', {
+      spaceId: populatedMessage.spaceId,
+      message: populatedMessage.message,
+      createdAt: populatedMessage.createdAt,
+      userId: populatedMessage.userId ? {
+        _id: populatedMessage.userId._id.toString(),
+        firstName: populatedMessage.userId.firstName,
+        lastName: populatedMessage.userId.lastName
+      } : null,
+      files: populatedMessage.files // เพิ่มข้อมูลไฟล์แนบ
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      message: populatedMessage 
+    });
+
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Internal Server Error",
+      message: error.message 
+    });
+  }
+};
 
 // เรนเดอร์หน้าแชท
 exports.renderChatPage = async (req, res) => {

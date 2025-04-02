@@ -26,8 +26,26 @@ body {
     height: 100%;
 }
 
+/* เพิ่มในส่วนท้ายของไฟล์ */
+img[class*="profileimage"],
+img[class*="avatar"] {
+    width: 40px !important;
+    height: 40px !important;
+    object-fit: cover;
+}
+
+/* ปรับปรุงการโหลดฟอนต์ */
+body.loading {
+    visibility: hidden;
+}
+
+body.fonts-loaded {
+    visibility: visible;
+    transition: visibility 0.3s;
+}
+
 /* Top navigation bar */
-.top{
+.top {
     height: 62px;
     background-color: var(--topnav);
     padding: 10px 20px;
@@ -81,25 +99,30 @@ body {
     gap: 15px;
     justify-content: space-between;
 }
-.nav-item:hover{
+
+.nav-item:hover {
     background-color: white;
     transition: 0.3s;
     border-radius: 50%;
 }
-.top-item:hover{
+
+.top-item:hover {
     background-color: var(--btn);
     border-radius: 5px;
 }
-.top-item:hover .nav-link i{
+
+.top-item:hover .nav-link i {
     color: white;
 }
 
-.nav-item:hover i{
+.nav-item:hover i {
     color: var(--btn);
 }
-.topNavlink .nav-tabs .nav-item:hover .nav-link{
+
+.topNavlink .nav-tabs .nav-item:hover .nav-link {
     color: white;
 }
+
 .TopNavigation .contain .nav-item .nav-link {
     color: white;
     width: 25px;
@@ -211,7 +234,8 @@ body {
     padding-bottom: 25px;
     border-radius: 50%;
 }
-.top-item{
+
+.top-item {
     border-radius: 5px;
 }
 
@@ -279,11 +303,13 @@ body {
     padding: 20px;
     height: 60px;
 }
-.sidebar.close .headInfo .image-text{
+
+.sidebar.close .headInfo .image-text {
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .sidebar .image {
     max-width: 60px;
     display: flex;
@@ -320,12 +346,14 @@ header .image-text .header-text {
     margin-left: 10px;
     color: var(--btn);
 }
-.header-text .user_id{
+
+.header-text .user_id {
     font-weight: 400;
     font-size: 16px;
     color: gray;
     margin-left: 10px;
 }
+
 .sidebar header .toggle {
     position: absolute;
     top: 50%;
@@ -376,9 +404,11 @@ header .image-text .header-text {
     align-items: center;
     border-radius: 5px;
 }
-.menu-link li:hover{
+
+.menu-link li:hover {
     background-color: var(--btn);
 }
+
 .sidebar li #icon {
     min-width: 40px;
     font-size: 20px;
@@ -441,9 +471,7 @@ header .image-text .header-text {
     align-items: center;
 }
 
-.space
-
-.spaceopt {
+.space .spaceopt {
     list-style: none;
 }
 
@@ -750,22 +778,26 @@ header .image-text .header-text {
     width: 34px;
     height: 34px;
     font-size: 13px;
-    margin-left: 0;    
+    margin-left: 0;
 }
-.sidebar.close .nav-links a{
+
+.sidebar.close .nav-links a {
     padding: 0;
     justify-content: center;
     width: 100%;
 }
-.secside{
+
+.secside {
     position: absolute;
     height: 100%;
     z-index: 10;
 }
-.nav-tabs .nav-link{
+
+.nav-tabs .nav-link {
     border: none;
-    
+
 }
-.nav-link{
+
+.nav-link {
     padding: 9px 20px;
 }

@@ -5,7 +5,7 @@
     }
 
     .chat-container {
-      max-width: 900px;
+      max-width: 80%;
       margin: 20px auto;
       display: flex;
       border: #ebebeb solid 1px;
@@ -21,6 +21,8 @@
 
     .chat-container .chat-head {
       min-width: 50px;
+      display: flex;
+      border-bottom: #efefef 1px solid;
     }
 
     .chat-container .chat-formsubmit {
@@ -28,7 +30,9 @@
     }
 
     .chat-container #chat-sec1 {
-      padding: 0 16px;
+      background-color: #f8f8f8;
+      padding: 15px;
+      height: 360px;
     }
 
     .chat-container #chat-sec {
@@ -36,9 +40,8 @@
     }
 
     .messages {
-      min-height: 400px;
-      max-height: 410px;
-      overflow-y: scroll;
+      height: 100%;
+      overflow-y: auto;
     }
 
     .message {
@@ -90,11 +93,7 @@
     }
 
     .date-divider {
-      text-align: center;
-      margin: 10px 0;
-      color: #666;
-      font-size: 0.9em;
-      font-weight: bold;
+      
     }
 
     .avatar {
@@ -143,6 +142,7 @@
       list-style: none;
       padding: 0;
       margin: 0;
+      border-right: #efefef 1px solid;
     }
 
     .headuser-list {
@@ -179,7 +179,9 @@
     }
 
     .chat-secright {
-      width: 50%;
+      transition: flex 0.3s ease;
+      width: 100%;
+      height: 100%;
     }
 
     .user-list li {
@@ -221,26 +223,44 @@
       border-radius: 100%;
     }
 
+    .btn-new-message {
+      position: relative;
+      height: 0;
+    }
+
     .new-message-btn {
       position: absolute;
-      bottom: 20px;
-      right: 300px;
-      z-index: 1000;
-      padding: 10px 20px;
+      right: 50%;
+      bottom: 70px;
+      z-index: 999;
+      width: 40px;
+      height: 40px;
       background-color: #007bff;
       color: white;
       border: none;
-      border-radius: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
     .new-message-btn.show {
       opacity: 1;
       visibility: visible;
-      transform: translateY(-100px);
+    }
+
+    .new-message-btn i {
+      font-size: 20px;
+    }
+
+    .chat-formsubmit {
+      position: relative;
+      z-index: 1000;
     }
 
     .read-status,
@@ -259,7 +279,7 @@
     .all-chat {
       min-height: 400px;
       max-height: 410px;
-      overflow-y: scroll;
+      overflow-y: auto;
     }
 
     .nameconuser .nameuser {
@@ -297,14 +317,12 @@
       width: 20px;
       height: 20px;
       display: none;
-      /* เริ่มต้นให้ซ่อนไว้ก่อน */
       align-items: center;
       justify-content: center;
       font-size: 12px;
       font-weight: 600;
       margin-top: 2px;
     }
-
 
     .user-list li.unread .nameuser {
       font-weight: 600;
@@ -315,146 +333,248 @@
       color: #111827;
       font-weight: 500;
     }
+
+    .search-allchat {
+      padding: 0 16px;
+    }
+
+    .search-allchat #searchChatInput {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    .chatprivatename {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .useronline {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .useronline.online {
+      color: #4CAF50;
+    }
+
+    .useronline.offline {
+      color: #9E9E9E;
+    }
+
+    .chatprivatename {
+      margin-left: 10px;
+    }
+
+    .chat-secright .profileimage-chat {
+      object-fit: cover;
+      border-radius: 100%;
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    .user-list.collapsed {
+      width: 80px;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+
+    .user-list.collapsed .search-allchat {
+      display: none;
+    }
+
+    .user-list.collapsed .all-chat li a {
+      justify-content: center;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    .user-list.collapsed .all-chat li .conmessage {
+      display: none;
+    }
+
+    .user-list.collapsed .all-chat li {
+      padding: 0;
+      margin: 0;
+    }
+
+    .user-list.collapsed .all-chat li img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .user-list.collapsed .all-chat li.active {
+      background-color: #f1f1f1;
+    }
+
+    .user-list.collapsed .headuser-list {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      background-color: white;
+      z-index: 10;
+      border-top-left-radius: 20px;
+    }
+
+    .user-list.collapsed .headuser-list h2 {
+      display: none;
+    }
+
+    .user-list.collapsed .headuser-list button {
+      margin: 0 auto;
+    }
+
+    .headuser-list button i {
+      transition: transform 0.3s ease;
+    }
+
+    .user-list.collapsed .headuser-list button i {
+      transform: rotate(180deg);
+    }
+
+    .date-divider {
+      text-align: center;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+
+    .date-divider::before,
+    .date-divider::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 45%;
+      height: 1px;
+      background-color: #efefef;
+    }
+
+    .date-divider::before {
+      left: 0;
+    }
+
+    .date-divider::after {
+      right: 0;
+    }
+
+    .message-date {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background-color: #f3f4f6;
+      color: #6b7280;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 9999px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chaticon {
+      display: flex;
+      margin: 0;
+      height: 100%;
+      gap: 0.5rem;
+    }
+
+    .chat-formsubmit #icon-chat {
+      display: flex;
+      padding: 10px;
+      justify-content: center;
+      font-size: 27px;
+      cursor: pointer;
+      border-radius: 9999px;
+      color: #5c6274;
+    }
+
+    .chat-formsubmit #icon-chat:hover {
+      background-color: #f4f4f4;
+      color: #020817;
+    }
   </style>
 </head>
 
 <%- include('../task/task_component/task-navbar.ejs') %>
   <div class="chat-container">
     <div class="chat-seccon">
-      <div class="user-list">
-        <div class="headuser-list">
-          <h2>แชท</h2>
-          <button><i class='bx bxs-chevron-right'></i></button>
-        </div>
-        <div class="all-chat">
-          <ul>
-            <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>" data-space-id="<%= spaces._id %>">
-              <a href="/space/item/<%= spaces._id %>/chat">
-                <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
-                <div class="conmessage">
-                  <div class="nameconuser">
-                    <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
-                    </div>
-                    <div class="conuser">
-                      <% if (lastGroupMessage) { %>
-                        <% if (lastGroupMessage.userId && lastGroupMessage.userId._id.toString()===user._id.toString())
-                          { %>
-                          คุณ: <%= lastGroupMessage.message %>
-                            <% } else { %>
-                              <% if (lastGroupMessage.userId) { %>
-                                <%= lastGroupMessage.userId.firstName %>: <%= lastGroupMessage.message %>
-                                    <% } else { %>
-                                      <%= lastGroupMessage.message %>
-                                        <% } %>
-                                          <% } %>
-                                            <% } else { %>
-                                              <% } %>
-                    </div>
-                  </div>
-                  <div class="timenotimessage">
-                    <div class="timemessage">
-                      <% if (lastGroupMessage) { %>
-                        <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
-                          <% } else { %>
-                            <% } %>
-                    </div>
-                    <div class="notimesaage"></div>
-                  </div>
-                </div>
-              </a>
-            </li>
-
-            <% spaces.collaborators.forEach(collab=> { %>
-              <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
-                <li class="<%= currentChatUserId === collab.user._id.toString() ? 'active' : '' %>"
-                  data-user-id="<%= collab.user._id %>"> <a
-                    href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
-                    <img class="profileimage-chat" src="<%= collab.user.profileImage %>" alt="Profile" width="30">
-                    <div class="conmessage">
-                      <div class="nameconuser">
-                        <div class="name-chat nameuser">
-                          <%= collab.user.firstName %>
-                            <%= collab.user.lastName %>
-                        </div>
-                        <div class="conuser">
-                          <% if (collab.lastMessage) { %>
-                            <% if (collab.lastMessageSender &&
-                              collab.lastMessageSender._id.toString()===user._id.toString()) { %>
-                              คุณ: <%= collab.lastMessage %>
-                                <% } else { %>
-                                  <%= collab.lastMessage %>
-                                    <% } %>
-                                      <% } %>
-                        </div>
-                      </div>
-                      <div class="timenotimessage">
-                        <div class="timemessage">
-                          <% if (collab.lastMessageTime) { %>
-                            <%= formatTime(new Date(collab.lastMessageTime)) %>
-                              <% } %>
-                        </div>
-                        <div class="notimesaage"></div>
-                      </div>
-                    </div>
-
-                  </a>
-                </li>
-                <% } %>
-                  <% }); %>
-          </ul>
-        </div>
-      </div>
-      <div class="chat-secright">
-        <div class="chat-head" id="chat-sec">
-          <h4>แชทส่วนตัวกับ <%= targetUser.firstName %>
-              <%= targetUser.lastName %>
-          </h4>
-        </div>
-        <div class="chat-con" id="chat-sec1">
-          <div class="messages" id="messages">
-            <% let previousDate=null; %>
-              <% messages.forEach((msg)=> { %>
-                <% const messageDate=new Date(msg.createdAt); %>
-                  <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
-                    <div class="date-divider">
-                      <%= formatDate(messageDate) %>
-                    </div>
+      <%- include('./task-chat/task-chatpartials.ejs') %>
+        <div class="chat-secright">
+          <div class="chat-head" id="chat-sec">
+            <img class="profileimage-chat" src="<%= targetUser.profileImage %>" alt="Profile" width="30">
+            <div class="chatprivatename">
+              <span id="privatename">แชทส่วนตัวกับ <%= targetUser.firstName %>
+                  <%= targetUser.lastName %></span>
+              <div class="useronline">
+                <% if (targetUser.isOnline) { %>
+                  <span class="online">ออนไลน์</span>
+                  <% } else { %>
+                    <span class="offline">ออฟไลน์</span>
                     <% } %>
-                      <% previousDate=messageDate; %>
-                        <div
-                          class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
-                          data-message-id="<%= msg._id %>">
-                          <% if (msg.userId._id.toString() !==user._id.toString()) { %>
-                            <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
-                              class="avatar">
-                            <% } %>
-                              <div class="message-bubble">
-                                <% if (msg.userId._id.toString() !==user._id.toString()) { %>
-                                  <div id="chat-nameuser">
-                                    <%= msg.userId.firstName %>
-                                      <%= msg.userId.lastName %>
-                                  </div>
-                                  <% } %>
-                                    <%= msg.message %>
-                                      <div class="message-time">
-                                        <%= formatTime(messageDate) %>
-                                          <% if (msg.userId._id.toString()===user._id.toString()) { %>
-                                            <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
-                                            <% } %>
-                                      </div>
-                              </div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-con" id="chat-sec1">
+            <div class="messages" id="messages">
+              <% let previousDate=null; %>
+                <% messages.forEach((msg)=> { %>
+                  <% const messageDate=new Date(msg.createdAt); %>
+                    <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
+                      <div class="date-divider">
+                        <div class="message-date">
+                          <%= formatDate(messageDate) %>
                         </div>
-                        <% }); %>
+                      </div>
+                      <% } %>
+                        <% previousDate=messageDate; %>
+                          <div
+                            class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
+                            data-message-id="<%= msg._id %>">
+                            <% if (msg.userId._id.toString() !==user._id.toString()) { %>
+                              <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
+                                class="avatar">
+                              <% } %>
+                                <div class="message-bubble">
+                                  <% if (msg.userId._id.toString() !==user._id.toString()) { %>
+                                    <div id="chat-nameuser">
+                                      <%= msg.userId.firstName %>
+                                        <%= msg.userId.lastName %>
+                                    </div>
+                                    <% } %>
+                                      <%= msg.message %>
+                                        <div class="message-time">
+                                          <%= formatTime(messageDate) %>
+                                            <% if (msg.userId._id.toString()===user._id.toString()) { %>
+                                              <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
+                                              <% } %>
+                                        </div>
+                                </div>
+                          </div>
+                          <% }); %>
+            </div>
+          </div>
+          <div class="btn-new-message">
+            <button class="new-message-btn">
+              <i class='bx bxs-chevron-down'></i>
+            </button>
+          </div>
+          <div class="chat-formsubmit" id="chat-sec">
+            <form class="chat-form" id="chatForm">
+              <div class="chaticon">
+                <div class="chat-img" id="icon-chat"><i class='bx bx-image-alt'></i></div>
+                <div class="chat-file" id="icon-chat"><i class='bx bx-paperclip'></i></div>
+              </div>
+              <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
+                autocomplete="off">
+              <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
+            </form>
           </div>
         </div>
-        <div class="chat-formsubmit" id="chat-sec">
-          <form class="chat-form" id="chatForm">
-            <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
-              autocomplete="off">
-            <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
-          </form>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -582,7 +702,8 @@
     // เมื่อผู้ใช้อยู่ในหน้าแชทส่วนตัว
     socket.emit('user in private chat', {
       userId: '<%= user._id %>',
-      targetUserId: '<%= targetUser._id %>'
+      targetUserId: '<%= targetUser._id %>',
+      spaceId: '<%= spaces._id %>'
     });
 
     // เมื่อผู้ใช้ออกจากหน้าแชทส่วนตัว
@@ -590,6 +711,7 @@
       socket.emit('user left private chat', {
         userId: '<%= user._id %>',
         targetUserId: '<%= targetUser._id %>',
+        spaceId: '<%= spaces._id %>'
       });
     });
 
@@ -621,16 +743,14 @@
   </script>
 
   <script>
-    const messagesContainer = document.getElementById('messages');
+    const messagesContainer = document.getElementById("messages");
+    const newMessageButton = document.querySelector('.new-message-btn');
     const chatSecRight = document.querySelector('.chat-secright');
 
-    // สร้างปุ่มเลื่อนลงล่าง
-    const newMessageButton = document.createElement("button");
-    newMessageButton.innerHTML = "<i class='bx bxs-chevron-down'></i>";
-    newMessageButton.classList.add("new-message-btn");
-    chatSecRight.appendChild(newMessageButton);
+    let userScrolledUp = false;
+    let lastScrollPosition = localStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
 
-    // ฟังก์ชันตรวจสอบตำแหน่งการเลื่อน
+    messagesContainer.scrollTop = lastScrollPosition;
     function checkScrollPosition() {
       const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
       if (!nearBottom) {
@@ -639,6 +759,14 @@
         newMessageButton.classList.remove("show");
       }
     }
+
+    messagesContainer.addEventListener("scroll", checkScrollPosition);
+
+    newMessageButton.addEventListener("click", () => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      newMessageButton.classList.remove("show");
+    });
+
 
     // บันทึกตำแหน่งการเลื่อน
     function saveScrollPosition() {
@@ -741,6 +869,9 @@
           li.classList.add('active');
         }
       });
+      if (window.location.pathname !== `/space/item/${msg.spaceId}/chat/private/${msg.userId._id}`) {
+        fetchUnreadCounts();
+      }
     });
   </script>
 
@@ -750,19 +881,30 @@
       try {
         const spaceId = '<%= spaces._id %>';
         const userId = '<%= user._id %>';
+        const path = window.location.pathname;
 
         // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
         const groupResponse = await fetch(`/space/item/${spaceId}/chat/unread-count`);
         const groupData = await groupResponse.json();
 
-        if (groupData.success) {
-          const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"] .notimesaage');
-          if (groupChatElement) {
-            groupChatElement.textContent = groupData.unreadCount > 0 ? groupData.unreadCount : '';
+        const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"]');
+        if (groupChatElement) {
+          const notiElement = groupChatElement.querySelector('.notimesaage');
+
+          // ตรวจสอบว่าผู้ใช้กำลังอยู่ในหน้าแชทกลุ่มหรือไม่
+          const isInGroupChat = path === `/space/item/${spaceId}/chat`;
+
+          if (groupData.unreadCount > 0 && !isInGroupChat) {
+            groupChatElement.classList.add('unread');
+            notiElement.textContent = groupData.unreadCount;
+            notiElement.style.display = 'flex';
+          } else {
+            groupChatElement.classList.remove('unread');
+            notiElement.style.display = 'none';
           }
         }
 
-        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัวสำหรับแต่ละผู้ใช้
+        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัว
         const collaborators = document.querySelectorAll('li[data-user-id]');
         collaborators.forEach(async (collab) => {
           const targetUserId = collab.dataset.userId;
@@ -770,9 +912,18 @@
           const privateData = await privateResponse.json();
 
           if (privateData.success) {
-            const privateChatElement = collab.querySelector('.notimesaage');
-            if (privateChatElement) {
-              privateChatElement.textContent = privateData.unreadCount > 0 ? privateData.unreadCount : '';
+            const notiElement = collab.querySelector('.notimesaage');
+
+            // ตรวจสอบว่าผู้ใช้กำลังอยู่ในแชทส่วนตัวกับผู้ใช้นี้หรือไม่
+            const isInPrivateChat = path === `/space/item/${spaceId}/chat/private/${targetUserId}`;
+
+            if (privateData.unreadCount > 0 && !isInPrivateChat) {
+              collab.classList.add('unread');
+              notiElement.textContent = privateData.unreadCount;
+              notiElement.style.display = 'flex';
+            } else {
+              collab.classList.remove('unread');
+              notiElement.style.display = 'none';
             }
           }
         });
@@ -782,19 +933,122 @@
       }
     }
 
-    // เรียกฟังก์ชันเมื่อโหลดหน้า
-    document.addEventListener('DOMContentLoaded', fetchUnreadCounts);
+    // ฟังก์ชันทำเครื่องหมายข้อความว่าอ่านแล้ว
+    async function markMessagesAsRead() {
+      const path = window.location.pathname;
+      const spaceId = '<%= spaces._id %>';
+      const userId = '<%= user._id %>';
 
-    // อัปเดตจำนวนข้อความที่ยังไม่อ่านเมื่อได้รับข้อความใหม่
+      try {
+        // ตรวจสอบว่าเป็นแชทส่วนตัวหรือไม่
+        const privateChatMatch = path.match(/\/space\/item\/[^/]+\/chat\/private\/([^/]+)/);
+
+        if (privateChatMatch) {
+          // แชทส่วนตัว - ทำเครื่องหมายว่าอ่านแล้ว
+          const targetUserId = privateChatMatch[1];
+          await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/mark-as-read`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId })
+          });
+        } else {
+          // แชทกลุ่ม - ทำเครื่องหมายว่าอ่านแล้ว
+          await fetch(`/space/item/${spaceId}/chat/mark-group-read`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId })
+          });
+        }
+
+        // อัปเดตสถานะเฉพาะแชทที่เปิดอยู่เท่านั้น
+        const currentChatElement = document.querySelector('.user-list li.active');
+        if (currentChatElement) {
+          const notiElement = currentChatElement.querySelector('.notimesaage');
+          if (notiElement) {
+            notiElement.style.display = 'none';
+            currentChatElement.classList.remove('unread');
+          }
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    }
+
+    // เรียกใช้เมื่อโหลดหน้า
+    document.addEventListener('DOMContentLoaded', () => {
+      // เรียกฟังก์ชันตรวจสอบ unread messages โดยไม่ mark as read ทันที
+      fetchUnreadCounts();
+
+      // เรียก mark as read เฉพาะเมื่อผู้ใช้คลิกที่แชท
+      document.querySelectorAll('.user-list li').forEach(item => {
+        item.addEventListener('click', function () {
+          // ตรวจสอบว่าไม่ใช่การคลิกที่แชทเดิม
+          if (!this.classList.contains('active')) {
+            setTimeout(markMessagesAsRead, 300);
+          }
+        });
+      });
+    });
+
+    // อัปเดตเมื่อมีข้อความใหม่
     socket.on('new message', () => {
-      fetchUnreadCounts();
+      const path = window.location.pathname;
+      const spaceId = '<%= spaces._id %>';
+
+      // ตรวจสอบว่าข้อความใหม่ไม่ใช่ในแชทที่กำลังเปิดอยู่
+      if (!path.includes('/chat/private/') && !path.endsWith('/chat')) {
+        fetchUnreadCounts();
+      }
     });
 
-    socket.on('update last group message', () => {
-      fetchUnreadCounts();
+    socket.on('update last group message', (message) => {
+      // อัปเดตเฉพาะถ้าไม่ใช่แชทกลุ่มที่กำลังเปิดอยู่
+      if (!window.location.pathname.endsWith('/chat')) {
+        fetchUnreadCounts();
+      }
     });
 
-    socket.on('update last private message', () => {
-      fetchUnreadCounts();
+    socket.on('update last private message', (message) => {
+      const path = window.location.pathname;
+      const targetUserId = message.userId._id.toString() === '<%= user._id %>'
+        ? message.targetUserId._id.toString()
+        : message.userId._id.toString();
+
+      // อัปเดตเฉพาะถ้าไม่ใช่แชทส่วนตัวที่กำลังเปิดอยู่
+      if (!path.includes(`/chat/private/${targetUserId}`)) {
+        fetchUnreadCounts();
+      }
     });
   </script>
+  <script>
+    // ฟังก์ชันค้นหาชื่อแชท
+    document.getElementById('searchChatInput').addEventListener('input', function (e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const chatItems = document.querySelectorAll('.all-chat li');
+
+      chatItems.forEach(item => {
+        const chatName = item.querySelector('.nameuser').textContent.toLowerCase();
+        if (chatName.includes(searchTerm)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+
+    // เพิ่มสไตล์ CSS สำหรับการค้นหา
+    const style = document.createElement('style');
+    style.textContent = `
+          .search-chatmember {
+            padding: 0 16px;
+            margin-bottom: 8px;
+          }
+          .search-chatmember input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+          }
+        `;
+    document.head.appendChild(style);
+  </script>
+

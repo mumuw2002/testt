@@ -416,6 +416,19 @@ io.on('connection', (socket) => {
       console.error('Error marking messages as read:', error);
     }
   });
+  socket.on('check user online status', async ({ userId }) => {
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        socket.emit('user online status', {
+          userId,
+          isOnline: user.isOnline
+        });
+      }
+    } catch (error) {
+      console.error('Error checking user online status:', error);
+    }
+  });
 });
 
 server.listen(port, () => {

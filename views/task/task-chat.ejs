@@ -5,7 +5,7 @@
   }
 
   .chat-container {
-    max-width: 900px;
+    max-width: 80%;
     margin: 20px auto;
     display: flex;
     border: #ebebeb solid 1px;
@@ -21,6 +21,8 @@
 
   .chat-container .chat-head {
     min-width: 50px;
+    display: flex;
+    border-bottom: #efefef 1px solid;
   }
 
   .chat-container .chat-formsubmit {
@@ -28,17 +30,22 @@
   }
 
   .chat-container #chat-sec1 {
-    padding: 0 16px;
+    background-color: #f8f8f8;
+    padding: 15px;
+    height: 360px;
   }
 
   .chat-container #chat-sec {
     padding: 16px;
   }
 
+  .chatgroupname {
+    margin-left: 10px;
+  }
+
   .messages {
-    min-height: 400px;
-    max-height: 410px;
-    overflow-y: scroll;
+    height: 100%;
+    overflow-y: auto;
   }
 
   .message {
@@ -106,10 +113,10 @@
 
   .chat-form {
     display: flex;
+    gap: 0.5rem;
   }
 
   .chat-form input {
-    margin: 0 20px;
     font-size: 14px;
     flex: 1;
     padding: 10px;
@@ -143,6 +150,7 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    border-right: #efefef 1px solid;
   }
 
   .headuser-list {
@@ -178,10 +186,6 @@
     padding: 8px;
   }
 
-  .chat-secright {
-    width: 50%;
-  }
-
   .user-list li {
     margin-top: 5px;
     padding: 12px;
@@ -200,7 +204,6 @@
     width: 100%;
     gap: 0.75rem;
     text-decoration: none;
-
   }
 
   .conmessage {
@@ -217,31 +220,44 @@
     border-radius: 100%;
   }
 
-  .user-list img {}
-
-
-
+  .btn-new-message {
+    position: relative;
+    height: 0;
+  }
 
   .new-message-btn {
     position: absolute;
-    bottom: 20px;
-    right: 300px;
-    z-index: 1000;
-    padding: 10px 20px;
+    right: 50%;
+    bottom: 70px;
+    z-index: 999;
+    width: 40px;
+    height: 40px;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
   .new-message-btn.show {
     opacity: 1;
     visibility: visible;
-    transform: translateY(-100px);
+  }
+
+  .new-message-btn i {
+    font-size: 20px;
+  }
+
+  .chat-formsubmit {
+    position: relative;
+    z-index: 1000;
   }
 
   .read-status,
@@ -260,7 +276,7 @@
   .all-chat {
     min-height: 400px;
     max-height: 410px;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 
   .nameconuser .nameuser {
@@ -298,7 +314,6 @@
     width: 20px;
     height: 20px;
     display: none;
-    /* เริ่มต้นให้ซ่อนไว้ก่อน */
     align-items: center;
     justify-content: center;
     font-size: 12px;
@@ -316,6 +331,343 @@
     color: #111827;
     font-weight: 500;
   }
+
+  .search-allchat {
+    padding: 0 16px;
+  }
+
+  .search-allchat #searchChatInput {
+    width: 100%;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  .chat-secright #groupname {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .chat-secright .profileimage-chat {
+    object-fit: cover;
+    border-radius: 100%;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .chat-secright {
+    transition: flex 0.3s ease;
+    width: 100%;
+    height: 100%;
+  }
+
+  .user-list.collapsed {
+    width: 80px;
+    transition: width 0.3s ease;
+    position: relative;
+  }
+
+  .user-list.collapsed .search-allchat {
+    display: none;
+  }
+
+  .user-list.collapsed .all-chat li a {
+    justify-content: center;
+    padding: 8px;
+    margin-top: 5px;
+  }
+
+  .user-list.collapsed .all-chat li .conmessage {
+    display: none;
+  }
+
+  .user-list.collapsed .all-chat li {
+    padding: 0;
+    margin: 0;
+  }
+
+  .user-list.collapsed .all-chat li img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .user-list.collapsed .all-chat li.active {
+    background-color: #f1f1f1;
+  }
+
+  .user-list.collapsed .headuser-list {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    background-color: white;
+    z-index: 10;
+    border-top-left-radius: 20px;
+  }
+
+  .user-list.collapsed .headuser-list h2 {
+    display: none;
+  }
+
+  .user-list.collapsed .headuser-list button {
+    margin: 0 auto;
+  }
+
+  .headuser-list button i {
+    transition: transform 0.3s ease;
+  }
+
+  .user-list.collapsed .headuser-list button i {
+    transform: rotate(180deg);
+  }
+
+  .date-divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+  }
+
+  .date-divider::before,
+  .date-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: #efefef;
+  }
+
+  .date-divider::before {
+    left: 0;
+  }
+
+  .date-divider::after {
+    right: 0;
+  }
+
+  .message-date {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .forminput-chat {
+    display: flex;
+    margin: 0;
+    height: 100%;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .chaticon {
+    display: flex;
+    margin: 0;
+    height: 100%;
+    gap: 0.5rem;
+  }
+
+  .chat-formsubmit #icon-chat {
+    display: flex;
+    padding: 10px;
+    justify-content: center;
+    font-size: 27px;
+    cursor: pointer;
+    border-radius: 9999px;
+    color: #5c6274;
+  }
+
+  .chat-formsubmit #icon-chat:hover {
+    background-color: #f4f4f4;
+    color: #020817;
+  }
+
+  .showimgfile-chat {
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    right: 0;
+    background-color: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    max-height: 220px;
+    overflow-x: auto;
+    display: none;
+    border: 1px solid #e5e7eb;
+  }
+
+  .file-list {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .file-item {
+    background-color: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    transition: all 0.2s ease;
+  }
+
+  .file-item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .file-content {
+    width: 210px;
+    display: block;
+    align-items: center;
+  }
+
+  .image-preview {
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f4f6;
+  }
+
+  .image-preview img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+  }
+
+  .file-icon-container {
+    font-size: 48px;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100px;
+  }
+
+  .chat-form .remove-file {
+    margin-right: 20px;
+    padding: 10px;
+    background-color: #dc3545;
+    border-radius: 100px;
+    border: 1px solid #dc3545;
+    color: #ffff;
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+
+  .file-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .file-size {
+    color: #6b7280;
+  }
+
+  .remove-file {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .remove-file:hover {
+    background-color: #f3f4f6;
+    color: #dc2626;
+  }
+
+  /* สไตล์ไอคอนไฟล์ประเภทต่างๆ */
+  .bx-file {
+    color: #6b7280;
+  }
+
+  .bxs-file-pdf {
+    color: #ef4444;
+  }
+
+  .bxs-file-doc {
+    color: #2563eb;
+  }
+
+  .bxs-file-xls {
+    color: #16a34a;
+  }
+
+  #imageModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+  }
+
+  #imageModal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #imageModal .modal-content {
+    position: relative;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #imageModal img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 8px;
+  }
 </style>
 </head>
 
@@ -323,156 +675,120 @@
   <%- include('../task/task_component/task-navbar.ejs') %>
     <div class="chat-container">
       <div class="chat-seccon">
-        <div class="user-list">
-          <div class="headuser-list">
-            <h2>แชท</h2>
-            <button><i class='bx bxs-chevron-right'></i></button>
-          </div>
-          <div class="all-chat">
-            <ul>
-              <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>" data-space-id="<%= spaces._id %>">
-                <a href="/space/item/<%= spaces._id %>/chat">
-                  <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat" width="30">
-                  <div class="conmessage">
-                    <div class="nameconuser">
-                      <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
-                      </div>
-                      <div class="conuser">
-                        <% if (lastGroupMessage) { %>
-                          <% if (lastGroupMessage.userId &&
-                            lastGroupMessage.userId._id.toString()===user._id.toString()) { %>
-                            คุณ: <%= lastGroupMessage.message %>
-                              <% } else { %>
-                                <% if (lastGroupMessage.userId) { %>
-                                  <%= lastGroupMessage.userId.firstName %>: <%= lastGroupMessage.message %>
-                                      <% } else { %>
-                                        <%= lastGroupMessage.message %>
-                                          <% } %>
-                                            <% } %>
-                                              <% } else { %>
-                                                <% } %>
-                      </div>
-                    </div>
-                    <div class="timenotimessage">
-                      <div class="timemessage">
-                        <% if (lastGroupMessage) { %>
-                          <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
-                            <% } else { %>
-                              <% } %>
-                      </div>
-                      <div class="notimesaage"></div>
-                    </div>
-                  </div>
-                </a>
-              </li>
-
-              <% spaces.collaborators.forEach(collab=> { %>
-                <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
-                  <li class="<%= currentChatUserId === collab.user._id.toString() ? 'active' : '' %>"
-                    data-user-id="<%= collab.user._id %>"> <a
-                      href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
-                      <img class="profileimage-chat" src="<%= collab.user.profileImage %>" alt="Profile" width="30">
-                      <div class="conmessage">
-                        <div class="nameconuser">
-                          <div class="name-chat nameuser">
-                            <%= collab.user.firstName %>
-                              <%= collab.user.lastName %>
-                          </div>
-                          <div class="conuser">
-                            <% if (collab.lastMessage) { %>
-                              <% if (collab.lastMessageSender &&
-                                collab.lastMessageSender._id.toString()===user._id.toString()) { %>
-                                คุณ: <%= collab.lastMessage %>
-                                  <% } else { %>
-                                    <%= collab.lastMessage %>
-                                      <% } %>
-                                        <% } else { %>
-                                          <% } %>
+        <%- include('./task-chat/task-chatpartials.ejs') %>
+          <div class="chat-secright">
+            <div class="chat-head" id="chat-sec">
+              <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat">
+              <div class="chatgroupname">
+                <span id="groupname">แชทกลุ่ม <%= spaces.projectName %></span>
+                <div class="all-member"></div>
+              </div>
+            </div>
+            <div class="chat-con" id="chat-sec1">
+              <div class="messages" id="messages">
+                <% let previousDate=null; %>
+                  <% messages.forEach((msg)=> { %>
+                    <% const messageDate=new Date(msg.createdAt); %>
+                      <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
+                        <!-- แสดงวันที่เมื่อเปลี่ยนวัน -->
+                        <div class="date-divider">
+                          <div class="message-date">
+                            <%= formatDate(messageDate) %>
                           </div>
                         </div>
-                        <div class="timenotimessage">
-                          <div class="timemessage">
-                            <% if (collab.lastMessageTime) { %>
-                              <%= formatTime(new Date(collab.lastMessageTime)) %>
+                        <% } %>
+                          <% previousDate=messageDate; %>
+                            <div
+                              class="message <%= msg.userId && msg.userId._id && msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
+                              data-message-id="<%= msg._id %>">
+
+                              <% if (msg.userId && msg.userId._id && msg.userId._id.toString() !==user._id.toString()) {
+                                %>
+                                <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
+                                  class="avatar">
                                 <% } %>
-                          </div>
-                          <div class="notimesaage"></div>
-                        </div>
-                      </div>
 
-                    </a>
-                  </li>
-                  <% } %>
-                    <% }); %>
-            </ul>
-          </div>
-        </div>
-        <div class="chat-secright">
-          <div class="chat-head" id="chat-sec">
-            แชทกลุ่ม <%= spaces.projectName %>
-          </div>
-          <div class="chat-con" id="chat-sec1">
-            <div class="messages" id="messages">
-              <% let previousDate=null; %>
-                <% messages.forEach((msg)=> { %>
-                  <% const messageDate=new Date(msg.createdAt); %>
-                    <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
-                      <!-- แสดงวันที่เมื่อเปลี่ยนวัน -->
-                      <div class="date-divider">
-                        <%= formatDate(messageDate) %>
-                      </div>
-                      <% } %>
-                        <% previousDate=messageDate; %>
-                          <div
-                            class="message <%= msg.userId && msg.userId._id && msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
-                            data-message-id="<%= msg._id %>">
+                                  <div class="message-bubble">
+                                    <% if (msg.userId && msg.userId._id.toString() !==user._id.toString()) { %>
+                                      <div id="chat-nameuser">
+                                        <%= msg.userId.firstName %>
+                                          <%= msg.userId.lastName %>
+                                      </div>
+                                      <% } %>
+                                        <%= msg.message %>
+                                          <div class="message-time">
+                                            <%= formatTime(messageDate) %>
+                                              <% if (msg.userId && msg.userId._id &&
+                                                msg.userId._id.toString()===user._id.toString()) { %>
+                                                <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
+                                                <% } %>
+                                          </div>
+                                  </div>
+                            </div>
 
-                            <% if (msg.userId && msg.userId._id && msg.userId._id.toString() !==user._id.toString()) {
-                              %>
-                              <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
-                                class="avatar">
-                              <% } %>
-
-                                <div class="message-bubble">
-                                  <% if (msg.userId && msg.userId._id.toString() !==user._id.toString()) { %>
-                                    <div id="chat-nameuser">
-                                      <%= msg.userId.firstName %>
-                                        <%= msg.userId.lastName %>
-                                    </div>
-                                    <% } %>
-
-
-                                      <%= msg.message %>
-
-                                        <div class="message-time">
-                                          <%= formatTime(messageDate) %>
-                                            <% if (msg.userId && msg.userId._id &&
-                                              msg.userId._id.toString()===user._id.toString()) { %>
-                                              <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
-                                              <% } %>
-                                        </div>
-                                </div>
-                          </div>
-
-                          <% }); %>
+                            <% }); %>
+              </div>
+              <div class="user-search-results" id="userSearchResults" style="display: none;">
+                <ul class="user-list"></ul>
+              </div>
             </div>
-            <div class="user-search-results" id="userSearchResults" style="display: none;">
-              <ul class="user-list"></ul>
+            <div class="btn-new-message">
+              <button class="new-message-btn">
+                <i class='bx bxs-chevron-down'></i>
+              </button>
+            </div>
+            <div class="chat-formsubmit" id="chat-sec">
+              <form class="chat-form" id="chatForm">
+                <div class="showimgfile-chat">
+                  <!-- ไฟล์ที่เลือกจะแสดงที่นี่ -->
+                </div>
+                <div class="forminput-chat">
+                  <div class="chaticon">
+                    <div class="chat-img" id="icon-chat" title="เพิ่มรูปภาพ"><i class='bx bx-image-alt'></i></div>
+                    <div class="chat-file" id="icon-chat" title="เพิ่มไฟล์"><i class='bx bx-paperclip'></i></div>
+                  </div>
+                  <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
+                    autocomplete="off">
+                  <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
+                </div>
+              </form>
             </div>
           </div>
-          <div class="chat-formsubmit" id="chat-sec">
-            <form class="chat-form" id="chatForm">
-              <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
-                autocomplete="off">
-              <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
-            </form>
-          </div>
-        </div>
-
-
       </div>
-
     </div>
+
+    <script>
+      // ฟังก์ชันค้นหาชื่อแชท
+      document.getElementById('searchChatInput').addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const chatItems = document.querySelectorAll('.all-chat li');
+
+        chatItems.forEach(item => {
+          const chatName = item.querySelector('.nameuser').textContent.toLowerCase();
+          if (chatName.includes(searchTerm)) {
+            item.style.display = 'flex';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+
+      // เพิ่มสไตล์ CSS สำหรับการค้นหา
+      const style = document.createElement('style');
+      style.textContent = `
+        .search-chatmember {
+          padding: 0 16px;
+          margin-bottom: 8px;
+        }
+        .search-chatmember input:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+        }
+      `;
+      document.head.appendChild(style);
+    </script>
+
     <script>
       // เมื่อโหลดหน้าเว็บเสร็จ
       document.addEventListener('DOMContentLoaded', () => {
@@ -536,18 +852,13 @@
 
     <script>
       const messagesContainer = document.getElementById("messages");
+      const newMessageButton = document.querySelector('.new-message-btn');
       const chatSecRight = document.querySelector('.chat-secright');
-
-      const newMessageButton = document.createElement("button");
-      newMessageButton.innerHTML = "<i class='bx bxs-chevron-down'></i>";
-      newMessageButton.classList.add("new-message-btn");
-      chatSecRight.appendChild(newMessageButton);
 
       let userScrolledUp = false;
       let lastScrollPosition = localStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
 
       messagesContainer.scrollTop = lastScrollPosition;
-
       function checkScrollPosition() {
         const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
         if (!nearBottom) {
@@ -559,12 +870,10 @@
 
       messagesContainer.addEventListener("scroll", checkScrollPosition);
 
-
-      messagesContainer.addEventListener("scroll", () => {
-        checkScrollPosition();
-        localStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+      newMessageButton.addEventListener("click", () => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        newMessageButton.classList.remove("show");
       });
-
 
       // บันทึกตำแหน่งการเลื่อนเมื่อผู้ใช้เปลี่ยนแท็บหรือปิดหน้าต่าง
       document.addEventListener("visibilitychange", () => {
@@ -772,28 +1081,35 @@
       document.querySelector('.chat-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isSending) return;
+
+        const message = messageInput.value; // ไม่ใช้ trim() เพื่อรักษาช่องว่าง
+
+        // Check if message is empty or contains only whitespace
+        if (!message || !message.replace(/\s/g, '').length) {
+          return; // Don't send empty message or message with only spaces
+        }
+
         isSending = true;
 
-        const message = messageInput.value;
         const spaceId = '<%= spaces._id %>';
         const userId = '<%= user._id %>';
 
         const mentionedUserIds = selectedUsers.map(user => user._id);
-        console.log('Mentioned Users:', mentionedUserIds); // Log ผู้ใช้ที่ถูก mention
+        console.log('Mentioned Users:', mentionedUserIds);
 
         try {
           const response = await fetch(`/space/item/${spaceId}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              message,
-              mentionedUsers: mentionedUserIds, // ส่ง userid ที่ถูก mention ไปยังเซิร์ฟเวอร์
+              message, // ส่งข้อความตามที่ผู้ใช้พิมพ์ (รวมช่องว่าง)
+              mentionedUsers: mentionedUserIds,
               type: 'group'
             }),
           });
           if (response.ok) {
             messageInput.value = '';
-            selectedUsers = []; // ล้างรายการผู้ใช้ที่ถูกเลือก
+            selectedUsers = [];
           } else {
             console.error('Failed to send message');
           }
@@ -803,7 +1119,6 @@
           isSending = false;
         }
       });
-
       // เมื่อผู้ใช้ถูก mention
       socket.on('new mention', (data) => {
         alert(`คุณถูก mention โดย ${data.mentionedBy} ในโปรเจกต์ ${data.projectName}: ${data.message}`);
@@ -1044,5 +1359,214 @@
         if (!path.includes(`/chat/private/${targetUserId}`)) {
           fetchUnreadCounts();
         }
+      });
+    </script>
+
+    <script>
+      // แสดงจำนวนสมาชิกทั้งหมดในกลุ่ม
+      function displayTotalMembers() {
+        const allMemberDiv = document.querySelector('.all-member');
+        if (!allMemberDiv) return;
+
+        // จำนวนสมาชิกทั้งหมด = เจ้าของโปรเจกต์ + collaborators
+        const totalMembers = 1 + <%= spaces.collaborators.length %>;
+
+        allMemberDiv.innerHTML = `
+      <div style="font-size: 14px; color: #666;">
+        ${totalMembers} สมาชิก
+      </div>
+    `;
+      }
+
+      // เรียกฟังก์ชันเมื่อโหลดหน้า
+      document.addEventListener('DOMContentLoaded', displayTotalMembers);
+    </script>
+
+    <script>
+      // ฟังก์ชันอัปโหลดไฟล์
+      const showImgFileChat = document.querySelector('.showimgfile-chat');
+      const chatImgIcon = document.querySelector('.chat-img');
+      const chatFileIcon = document.querySelector('.chat-file');
+      let selectedFiles = [];
+
+      // ฟังก์ชันแสดงไฟล์ที่เลือก
+      function displaySelectedFiles() {
+        showImgFileChat.innerHTML = '';
+
+        if (selectedFiles.length === 0) {
+          showImgFileChat.style.display = 'none';
+          return;
+        }
+
+        const fileList = document.createElement('div');
+        fileList.className = 'file-list';
+
+        selectedFiles.forEach((file, index) => {
+          const fileElement = document.createElement('div');
+          fileElement.className = 'file-item';
+
+          if (file.type.startsWith('image/')) {
+            // แสดงตัวอย่างภาพ
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              fileElement.innerHTML = `
+          <div class="file-content">
+            <div class="image-preview">
+              <img src="${e.target.result}" alt="ตัวอย่างภาพ">
+            </div>
+            <div class="file-info">
+              <div class="file-name">${file.name}</div>
+              <div class="file-meta">
+                <span class="file-size">${formatFileSize(file.size)}</span>
+              </div>
+            </div>
+            <button class="remove-file" data-index="${index}">
+              <i class="bx bx-x"></i>
+            </button>
+          </div>
+        `;
+
+              fileElement.querySelector('.remove-file').addEventListener('click', function (e) {
+                e.stopPropagation();
+                selectedFiles.splice(index, 1);
+                displaySelectedFiles();
+              });
+            };
+            reader.readAsDataURL(file);
+          } else {
+            // แสดงไอคอนไฟล์ตามประเภท
+            let fileIcon = '';
+            if (file.type.includes('pdf')) {
+              fileIcon = '<i class="bx bxs-file-pdf file-icon"></i>';
+            } else if (file.type.includes('word') || file.type.includes('document')) {
+              fileIcon = '<i class="bx bxs-file-doc file-icon"></i>';
+            } else if (file.type.includes('excel') || file.type.includes('spreadsheet')) {
+              fileIcon = '<i class="bx bxs-file-xls file-icon"></i>';
+            } else {
+              fileIcon = '<i class="bx bx-file file-icon"></i>';
+            }
+
+            fileElement.innerHTML = `
+        <div class="file-content">
+          <div class="file-icon-container">
+            ${fileIcon}
+          </div>
+          <div class="file-info">
+            <div class="file-name">${file.name}</div>
+            <div class="file-meta">
+              <span class="file-size">${formatFileSize(file.size)}</span>
+            </div>
+          </div>
+          <button class="remove-file" data-index="${index}">
+            <i class="bx bx-x"></i>
+          </button>
+        </div>
+      `;
+
+            fileElement.querySelector('.remove-file').addEventListener('click', function (e) {
+              e.stopPropagation();
+              selectedFiles.splice(index, 1);
+              displaySelectedFiles();
+            });
+          }
+
+          fileList.appendChild(fileElement);
+        });
+
+        showImgFileChat.appendChild(fileList);
+        showImgFileChat.style.display = 'block';
+      }
+
+      // ฟังก์ชันจัดรูปแบบขนาดไฟล์
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // การจัดการเมื่อคลิกที่ไอคอนรูปภาพ (เฉพาะไฟล์รูปภาพ)
+      chatImgIcon.addEventListener('click', function () {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.multiple = true;
+        fileInput.onchange = (e) => {
+          const files = Array.from(e.target.files);
+          const validFiles = files.filter(file => file.type.startsWith('image/'));
+          if (validFiles.length !== files.length) {
+            alert('กรุณาเลือกเฉพาะไฟล์รูปภาพเท่านั้น!');
+          }
+          selectedFiles = [...selectedFiles, ...validFiles];
+          displaySelectedFiles();
+        };
+        fileInput.click();
+      });
+
+      // การจัดการเมื่อคลิกที่ไอคอนเอกสาร (เฉพาะไฟล์เอกสาร)
+      chatFileIcon.addEventListener('click', function () {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.multiple = true;
+        fileInput.onchange = (e) => {
+          const files = Array.from(e.target.files);
+          selectedFiles = [...selectedFiles, ...files];
+          displaySelectedFiles();
+        };
+        fileInput.click();
+      });
+      // ปรับปรุงการส่งฟอร์มเพื่อจัดการการอัปโหลดไฟล์
+      document.getElementById('chatForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const message = document.getElementById('messageInput').value;
+        const spaceId = '<%= spaces._id %>';
+        const userId = '<%= user._id %>';
+        const formData = new FormData();
+
+        formData.append('message', message);
+        formData.append('spaceId', spaceId);
+        formData.append('userId', userId);
+
+        // เพิ่มไฟล์ทั้งหมดที่เลือก
+        selectedFiles.forEach((file, index) => {
+          formData.append('files', file);
+        });
+
+        try {
+          const response = await fetch(`/space/item/${spaceId}/chat/upload`, {
+            method: 'POST',
+            body: formData,
+            // ไม่ต้องกำหนด Content-Type จะถูกตั้งโดยอัตโนมัติ
+          });
+
+          if (response.ok) {
+            // ล้างข้อมูลหลังส่งสำเร็จ
+            document.getElementById('messageInput').value = '';
+            selectedFiles = [];
+            showImgFileChat.style.display = 'none';
+            showImgFileChat.innerHTML = '';
+          }
+        } catch (error) {
+          console.error('เกิดข้อผิดพลาดในการส่งข้อความ:', error);
+        }
+      });
+      // ปิดส่วนแสดงไฟล์เมื่อคลิกที่อื่นในหน้าเว็บ
+      document.addEventListener('click', function (e) {
+        if (!showImgFileChat.contains(e.target) &&
+          e.target !== chatImgIcon &&
+          e.target !== chatFileIcon &&
+          !chatImgIcon.contains(e.target) &&
+          !chatFileIcon.contains(e.target)) {
+          if (selectedFiles.length === 0) {
+            showImgFileChat.style.display = 'none';
+          }
+        }
+      });
+
+      // ป้องกันการปิดเมื่อคลิกในส่วนแสดงไฟล์
+      showImgFileChat.addEventListener('click', function (e) {
+        e.stopPropagation();
       });
     </script>

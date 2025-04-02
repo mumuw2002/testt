@@ -5,6 +5,7 @@ const { isLoggedIn } = require('../../middleware/checkAuth');
 const spaceController = require('../../controllers/spaceController');
 const { uploadCovers } = require('../../middleware/upload');
 const chatController = require('../../controllers/chatController');
+const upload = require('../../middleware/upload-chat'); // ต้องสร้าง middleware นี้
 
 router.get('/space/item/:id/dashboard', isLoggedIn, taskPageController.task_dashboard);
 router.get('/space/item/:id/task_list', isLoggedIn, taskPageController.task_list);
@@ -27,5 +28,7 @@ router.get('/space/item/:id/chat/unread-count', isLoggedIn, chatController.getUn
 router.get('/space/item/:id/chat/private/:targetUserId/unread-count', isLoggedIn, chatController.getUnreadPrivateMessageCount);
 router.post('/:id/chat/mark-group-read', chatController.markGroupMessagesAsRead);
 router.post('/:id/chat/private/:targetUserId/mark-as-read', chatController.markPrivateMessagesAsRead);
+
+router.post('/space/item/:id/chat/upload', upload.array('files'), chatController.uploadFiles);
 
 module.exports = router;
