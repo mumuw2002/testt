@@ -1,13 +1,4 @@
 const mongoose = require('mongoose');
-
-const fileSchema = new mongoose.Schema({
-    url: { type: String, required: true },
-    originalname: { type: String, required: true },
-    mimetype: { type: String, required: true },
-    size: { type: Number, required: true },
-    filename: { type: String, required: true }
-}, { _id: false });
-
 const chatSchema = new mongoose.Schema({
     spaceId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -25,15 +16,17 @@ const chatSchema = new mongoose.Schema({
     },
     message: {
         type: String,
-        required: function() {
-            return this.files.length === 0; // ข้อความจำเป็นถ้าไม่มีไฟล์แนบ
-        },
+        required: function () {
+            return !this.files || this.files.length === 0;
+        }
     },
-    files: [fileSchema], // ฟิลด์ใหม่สำหรับเก็บไฟล์แนบ
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+    files: [{
+        url: String,
+        originalname: String,
+        mimetype: String,
+        size: Number,
+        filename: String
+    }],
     type: {
         type: String,
         enum: ['group', 'private'],
@@ -48,7 +41,7 @@ const chatSchema = new mongoose.Schema({
         ref: 'User'
     }]
 }, {
-    timestamps: true // เพิ่ม createdAt และ updatedAt อัตโนมัติ
+    timestamps: true
 });
 
 module.exports = mongoose.model('Chat', chatSchema);

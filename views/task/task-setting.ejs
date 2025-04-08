@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details</title>
+    <style>
+        .settingtask {
+            width: 800px;
+            max-height: 550px;
+            overflow: auto;
+            margin: 0 auto;
+            padding: 20px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .settingtask::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #172B4D;
+        }
+
+        .required-note {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .coverimg {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .coverimg .seccoverimg {
+            display: inline-grid;
+            justify-items: center;
+        }
+
+        .seccoverimg img {
+            min-width: 600px;
+            height: 200px;
+            object-fit: cover;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 2px black;
+            border: #00000033 solid 0.2px;
+        }
+
+        .seccoverimg button {
+            width: fit-content;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: #D04437;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #DFE1E6;
+            border-radius: 3px;
+            font-size: 14px;
+            background-color: #f5f5f5;
+        }
+
+        .info-box {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .info-item {
+            margin-bottom: 10px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../task/task_component/task-navbar.ejs') %>
+
+        <div class="settingtask">
+            <div class="secsettingtask">
+                <h1>ตั้งค่าโปรเจกต์</h1>
+
+                <form action="/space/item/<%= spaceId %>/setting" method="POST" enctype="multipart/form-data">
+                    <div class="coverimg">
+                        <div class="seccoverimg">
+                            <img id="cover-preview" src="<%= spaces.projectCover %>" alt="รูปปก">
+                            <input type="file" name="projectCover" id="projectCover" style="display: none;"
+                                accept="image/*">
+                            <button type="button"
+                                onclick="document.getElementById('projectCover').click()">เปลี่ยนรูป</button>
+                        </div>
+                    </div>
+
+                    <p class="required-note">ช่องที่ต้องกรอกข้อมูลจะมีเครื่องหมายดอกจัน <span
+                            style="color: #D04437;">*</span>
+                    </p>
+
+                    <div class="section">
+                        <div class="form-group">
+                            <label for="name" class="required-field">Name</label>
+                            <input type="text" id="name" name="projectName" value="<%= spaces.projectName %>">
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="info-box">
+                            <div class="info-item">
+                                <span class="info-label">ผู้สร้างโปรเจกต์</span>
+                                <img src="<%= ownerProfileImage %>" alt="Profile" width="40" height="40"
+                                    style="border-radius: 50%; margin-top: 5px;">
+                                <span>
+                                    <%= projectownerName %>
+                                </span>
+
+                            </div>
+                        </div>
+                        <p class="help-text"></p>
+                    </div>
+                    <button type="submit">บันทึก</button>
+                </form>
+            </div>
+        </div>
+
+
+        <script>
+            document.getElementById('projectCover').addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    document.getElementById('cover-preview').src = URL.createObjectURL(file);
+                }
+            });
+        </script>
+
+</body>
+
+</html>

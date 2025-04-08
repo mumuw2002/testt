@@ -1,1044 +1,1414 @@
 <head>
-  <style>
-    body {
-      background-color: #f7f7f7;
-    }
-
-    .chat-container {
-      max-width: 80%;
-      margin: 20px auto;
-      display: flex;
-      border: #ebebeb solid 1px;
-      box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
-      border-radius: 16px;
-      background-color: #ffffff;
-    }
-
-    .chat-seccon {
-      display: flex;
-      width: -webkit-fill-available;
-    }
-
-    .chat-container .chat-head {
-      min-width: 50px;
-      display: flex;
-      border-bottom: #efefef 1px solid;
-    }
-
-    .chat-container .chat-formsubmit {
-      border-top: #efefef 1px solid;
-    }
-
-    .chat-container #chat-sec1 {
-      background-color: #f8f8f8;
-      padding: 15px;
-      height: 360px;
-    }
-
-    .chat-container #chat-sec {
-      padding: 16px;
-    }
-
-    .messages {
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    .message {
-      margin-bottom: 10px;
-      display: flex;
-      align-items: flex-end;
-    }
-
-    .message.current-user {
-      justify-content: flex-end;
-    }
-
-    .message.other-user {
-      justify-content: flex-left;
-    }
-
-    .message-bubble {
-      max-width: 70%;
-      padding: 10px;
-      border-radius: 10px;
-      position: relative;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      white-space: normal;
-    }
-
-    .message-bubble #chat-nameuser {
-      font-size: 14px;
-      color: #374151;
-    }
-
-    .message.current-user .message-bubble {
-      background-color: #007bff;
-      color: white;
-      margin-left: auto;
-    }
-
-    .message.other-user .message-bubble {
-      background-color: #f1f1f1;
-      color: black;
-      margin-right: auto;
-    }
-
-    .message-time {
-      font-size: 0.8em;
-      color: #666;
-      margin-top: 5px;
-      text-align: right;
-    }
-
-    .date-divider {
-      
-    }
-
-    .avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
-
-    .chat-form {
-      display: flex;
-    }
-
-    .chat-form input {
-      margin: 0 20px;
-      font-size: 14px;
-      flex: 1;
-      padding: 10px;
-      border: #cecece solid 1px;
-      border-radius: 20px;
-    }
-
-    .chat-form button {
-      margin-right: 20px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      border-radius: 100px;
-      border: 1px solid #007bff;
-    }
-
-    .user-search-results {
-      position: absolute;
-      background: white;
-      border: 1px solid #ddd;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 1000;
-      width: 300px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      margin-top: 5px;
-      bottom: 70px;
-    }
-
-    .user-list {
-      width: 50%;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      border-right: #efefef 1px solid;
-    }
-
-    .headuser-list {
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .headuser-list h2 {
-      font-size: 18px;
-      margin: 0;
-      align-self: center;
-    }
-
-    .headuser-list button {
-      font-size: 20px;
-      border: none;
-      background-color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 100px;
-    }
-
-    .headuser-list button:hover {
-      background-color: rgb(243, 244, 246);
-    }
-
-    .user-list ul {
-      list-style-type: none;
-      padding: 8px;
-    }
-
-    .chat-secright {
-      transition: flex 0.3s ease;
-      width: 100%;
-      height: 100%;
-    }
-
-    .user-list li {
-      margin-top: 5px;
-      padding: 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .user-list li:hover {
-      background-color: #f1f1f1;
-    }
-
-    .user-list a {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      gap: 0.75rem;
-      text-decoration: none;
-    }
-
-    .conmessage {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .nameconuser .conuser {
-      width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .user-list .profileimage-chat {
-      width: 2.5rem;
-      height: 2.5rem;
-      object-fit: cover;
-      border-radius: 100%;
-    }
-
-    .btn-new-message {
-      position: relative;
-      height: 0;
-    }
-
-    .new-message-btn {
-      position: absolute;
-      right: 50%;
-      bottom: 70px;
-      z-index: 999;
-      width: 40px;
-      height: 40px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    .new-message-btn.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .new-message-btn i {
-      font-size: 20px;
-    }
-
-    .chat-formsubmit {
-      position: relative;
-      z-index: 1000;
-    }
-
-    .read-status,
-    .message.current-user .message-time {
-      color: rgb(219 234 254);
-    }
-
-    .name-chat {
-      font-weight: 500;
-    }
-
-    .notimesaage {
-      justify-self: center;
-    }
-
-    .all-chat {
-      min-height: 400px;
-      max-height: 410px;
-      overflow-y: auto;
-    }
-
-    .nameconuser .nameuser {
-      font-size: 16px;
-      font-weight: 500;
-      color: #020817;
-    }
-
-    .nameconuser .conuser {
-      width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 14px;
-      color: #111827b3;
-    }
-
-    .timenotimessage .timemessage {
-      font-size: 12px;
-      color: #6B7280;
-    }
-
-    .user-list li.active {
-      background-color: #f1f1f1;
-    }
-
-    .user-list li.active:hover {
-      background-color: #f1f1f1;
-    }
-
-    .notimesaage {
-      background-color: #3b82f6;
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      margin-top: 2px;
-    }
-
-    .user-list li.unread .nameuser {
-      font-weight: 600;
-      color: #1a1a1a;
-    }
-
-    .user-list li.unread .conuser {
-      color: #111827;
-      font-weight: 500;
-    }
-
-    .search-allchat {
-      padding: 0 16px;
-    }
-
-    .search-allchat #searchChatInput {
-      width: 100%;
-      padding: 8px 12px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      font-size: 14px;
-    }
-
-    .chatprivatename {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .useronline {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .useronline.online {
-      color: #4CAF50;
-    }
-
-    .useronline.offline {
-      color: #9E9E9E;
-    }
-
-    .chatprivatename {
-      margin-left: 10px;
-    }
-
-    .chat-secright .profileimage-chat {
-      object-fit: cover;
-      border-radius: 100%;
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    .user-list.collapsed {
-      width: 80px;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-
-    .user-list.collapsed .search-allchat {
-      display: none;
-    }
-
-    .user-list.collapsed .all-chat li a {
-      justify-content: center;
-      padding: 8px;
-      margin-top: 5px;
-    }
-
-    .user-list.collapsed .all-chat li .conmessage {
-      display: none;
-    }
-
-    .user-list.collapsed .all-chat li {
-      padding: 0;
-      margin: 0;
-    }
-
-    .user-list.collapsed .all-chat li img {
-      width: 40px;
-      height: 40px;
-    }
-
-    .user-list.collapsed .all-chat li.active {
-      background-color: #f1f1f1;
-    }
-
-    .user-list.collapsed .headuser-list {
-      position: relative;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-      background-color: white;
-      z-index: 10;
-      border-top-left-radius: 20px;
-    }
-
-    .user-list.collapsed .headuser-list h2 {
-      display: none;
-    }
-
-    .user-list.collapsed .headuser-list button {
-      margin: 0 auto;
-    }
-
-    .headuser-list button i {
-      transition: transform 0.3s ease;
-    }
-
-    .user-list.collapsed .headuser-list button i {
-      transform: rotate(180deg);
-    }
-
-    .date-divider {
-      text-align: center;
-      margin: 1.5rem 0;
-      position: relative;
-    }
-
-    .date-divider::before,
-    .date-divider::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 45%;
-      height: 1px;
-      background-color: #efefef;
-    }
-
-    .date-divider::before {
-      left: 0;
-    }
-
-    .date-divider::after {
-      right: 0;
-    }
-
-    .message-date {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      background-color: #f3f4f6;
-      color: #6b7280;
-      font-size: 0.75rem;
-      font-weight: 500;
-      border-radius: 9999px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .chaticon {
-      display: flex;
-      margin: 0;
-      height: 100%;
-      gap: 0.5rem;
-    }
-
-    .chat-formsubmit #icon-chat {
-      display: flex;
-      padding: 10px;
-      justify-content: center;
-      font-size: 27px;
-      cursor: pointer;
-      border-radius: 9999px;
-      color: #5c6274;
-    }
-
-    .chat-formsubmit #icon-chat:hover {
-      background-color: #f4f4f4;
-      color: #020817;
-    }
-  </style>
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+
+        .chat-container {
+            max-width: 80%;
+            margin: 20px auto;
+            display: flex;
+            border: #ebebeb solid 1px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
+            border-radius: 16px;
+            background-color: #ffffff;
+        }
+
+        .chat-seccon {
+            display: flex;
+            width: -webkit-fill-available;
+        }
+
+        .chat-container .chat-head {
+            min-width: 50px;
+            display: flex;
+            border-bottom: #efefef 1px solid;
+        }
+
+        .chat-container .chat-formsubmit {
+            border-top: #efefef 1px solid;
+        }
+
+        .chat-container #chat-sec1 {
+            background-color: #f8f8f8;
+            padding: 15px;
+            height: 360px;
+        }
+
+        .chat-container #chat-sec {
+            padding: 16px;
+        }
+
+        .messages {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .message.current-user {
+            justify-content: flex-end;
+        }
+
+        .message.other-user {
+            justify-content: flex-left;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        .message-bubble #chat-nameuser {
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .message.current-user .message-bubble {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.other-user .message-bubble {
+            background-color: #f1f1f1;
+            color: black;
+            margin-right: auto;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .date-divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .date-divider {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-form input {
+            font-size: 14px;
+            flex: 1;
+            padding: 10px;
+            border: #cecece solid 1px;
+            border-radius: 20px;
+        }
+
+        .chat-form button {
+            margin-right: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            border-radius: 100px;
+            border: 1px solid #007bff;
+        }
+
+        .user-search-results {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 300px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            bottom: 70px;
+        }
+
+        .user-list {
+            width: 50%;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-right: #efefef 1px solid;
+        }
+
+        .headuser-list {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .headuser-list h2 {
+            font-size: 18px;
+            margin: 0;
+            align-self: center;
+        }
+
+        .headuser-list button {
+            font-size: 20px;
+            border: none;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 100px;
+        }
+
+        .headuser-list button:hover {
+            background-color: rgb(243, 244, 246);
+        }
+
+        .user-list ul {
+            list-style-type: none;
+            padding: 8px;
+        }
+
+        .chat-secright {
+            transition: flex 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        .user-list li {
+            margin-top: 5px;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .user-list li:hover {
+            background-color: #f1f1f1;
+        }
+
+        .user-list a {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .conmessage {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nameconuser .conuser {
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-list .profileimage-chat {
+            width: 2.5rem;
+            height: 2.5rem;
+            object-fit: cover;
+            border-radius: 100%;
+        }
+
+        .btn-new-message {
+            position: relative;
+            height: 0;
+        }
+
+        .new-message-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .new-message-btn {
+            position: absolute;
+            right: 50%;
+            bottom: 70px;
+            z-index: 999;
+            width: 40px;
+            height: 40px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .new-message-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .read-status,
+        .message.current-user .message-time {
+            color: rgb(219 234 254);
+        }
+
+        .name-chat {
+            font-weight: 500;
+        }
+
+        .notimesaage {
+            justify-self: center;
+        }
+
+        .all-chat {
+            min-height: 400px;
+            max-height: 410px;
+            overflow-y: auto;
+        }
+
+        .nameconuser .nameuser {
+            font-size: 16px;
+            font-weight: 500;
+            color: #020817;
+        }
+
+        .nameconuser .conuser {
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #111827b3;
+        }
+
+        .timenotimessage .timemessage {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .user-list li.active {
+            background-color: #f1f1f1;
+        }
+
+        .user-list li.active:hover {
+            background-color: #f1f1f1;
+        }
+
+        .notimesaage {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            /* เริ่มต้นให้ซ่อนไว้ก่อน */
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+
+        .user-list li.unread .nameuser {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .user-list li.unread .conuser {
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .search-allchat {
+            padding: 0 16px;
+        }
+
+        .search-allchat #searchChatInput {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .chat-secright #privetename {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .chat-secright .profileimage-chat {
+            object-fit: cover;
+            border-radius: 100%;
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .chatprivetename {
+            margin-left: 10px;
+        }
+
+        .chat-secright {
+            transition: flex 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        .user-list.collapsed {
+            width: 80px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .user-list.collapsed .search-allchat {
+            display: none;
+        }
+
+        .user-list.collapsed .all-chat li a {
+            justify-content: center;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        .user-list.collapsed .all-chat li .conmessage {
+            display: none;
+        }
+
+        .user-list.collapsed .all-chat li {
+            padding: 0;
+            margin: 0;
+        }
+
+        .user-list.collapsed .all-chat li img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .user-list.collapsed .all-chat li.active {
+            background-color: #f1f1f1;
+        }
+
+        .user-list.collapsed .headuser-list {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            background-color: white;
+            z-index: 10;
+            border-top-left-radius: 20px;
+        }
+
+        .user-list.collapsed .headuser-list h2 {
+            display: none;
+        }
+
+        .user-list.collapsed .headuser-list button {
+            margin: 0 auto;
+        }
+
+        .headuser-list button i {
+            transition: transform 0.3s ease;
+        }
+
+        .user-list.collapsed .headuser-list button i {
+            transform: rotate(180deg);
+        }
+
+        .date-divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .date-divider::before,
+        .date-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background-color: #efefef;
+        }
+
+        .date-divider::before {
+            left: 0;
+        }
+
+        .date-divider::after {
+            right: 0;
+        }
+
+        .message-date {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: #f3f4f6;
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .forminput-chat {
+            display: flex;
+            margin: 0;
+            height: 100%;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .chaticon {
+            display: flex;
+            margin: 0;
+            height: 100%;
+            gap: 0.5rem;
+        }
+
+        .chat-formsubmit {
+            position: relative;
+            z-index: 1000;
+        }
+
+        .chat-formsubmit #icon-chat {
+            display: flex;
+            padding: 10px;
+            justify-content: center;
+            font-size: 27px;
+            cursor: pointer;
+            border-radius: 9999px;
+            color: #5c6274;
+        }
+
+        .chat-formsubmit #icon-chat:hover {
+            background-color: #f4f4f4;
+            color: #020817;
+        }
+
+        .showimgfile-chat {
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            max-height: 220px;
+            overflow-x: auto;
+            display: none;
+            border: 1px solid #e5e7eb;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+        }
+
+        .file-item {
+            background-color: #f9fafb;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .file-content {
+            width: 210px;
+            display: block;
+            align-items: center;
+        }
+
+        .image-preview {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .file-icon-container {
+            font-size: 48px;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100px;
+        }
+
+        .chat-form .remove-file {
+            margin-right: 20px;
+            padding: 10px;
+            background-color: #dc3545;
+            border-radius: 100px;
+            border: 1px solid #dc3545;
+            color: #ffff;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .file-size {
+            color: #6b7280;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .remove-file:hover {
+            background-color: #f3f4f6;
+            color: #dc2626;
+        }
+
+        /* สไตล์ไอคอนไฟล์ประเภทต่างๆ */
+        .bx-file {
+            color: #6b7280;
+        }
+
+        .bxs-file-pdf {
+            color: #ef4444;
+        }
+
+        .bxs-file-doc {
+            color: #2563eb;
+        }
+
+        .bxs-file-xls {
+            color: #16a34a;
+        }
+
+        #imageModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+        }
+
+        #imageModal .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #imageModal .modal-content {
+            position: relative;
+            padding: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: auto;
+            background-color: unset;
+            background-clip: padding-box;
+            border: 0;
+            border-radius: 0;
+            outline: 0;
+        }
+
+        #imageModal img {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+
+        .mention-list {
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid #e5e7eb;
+        }
+
+        .mention-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mention-list li {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mention-list li:hover {
+            background-color: #f3f4f6;
+        }
+
+        .mention-list li img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .mention-menu {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .mention-tab {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #6b7280;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+
+        .mention-tab:hover {
+            color: #111827;
+        }
+
+        .mention-tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        #mentionUserList,
+        #mentionTaskList {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        #mentionTaskList li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #mentionTaskList li i {
+            font-size: 20px;
+            color: #3b82f6;
+        }
+
+        .task-mention {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            background-color: #eff6ff;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .task-mention:hover {
+            text-decoration: underline;
+            color: #2563eb;
+        }
+
+        #mentionTaskList li {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #mentionTaskList li:hover {
+            background-color: #f3f4f6;
+        }
+
+        #mentionTaskList li i {
+            color: #3b82f6;
+            font-size: 20px;
+        }
+    </style>
 </head>
 
 <%- include('../task/task_component/task-navbar.ejs') %>
-  <div class="chat-container">
-    <div class="chat-seccon">
-      <%- include('./task-chat/task-chatpartials.ejs') %>
-        <div class="chat-secright">
-          <div class="chat-head" id="chat-sec">
-            <img class="profileimage-chat" src="<%= targetUser.profileImage %>" alt="Profile" width="30">
-            <div class="chatprivatename">
-              <span id="privatename">แชทส่วนตัวกับ <%= targetUser.firstName %>
-                  <%= targetUser.lastName %></span>
-              <div class="useronline">
-                <% if (targetUser.isOnline) { %>
-                  <span class="online">ออนไลน์</span>
-                  <% } else { %>
-                    <span class="offline">ออฟไลน์</span>
-                    <% } %>
-              </div>
-            </div>
-          </div>
-          <div class="chat-con" id="chat-sec1">
-            <div class="messages" id="messages">
-              <% let previousDate=null; %>
-                <% messages.forEach((msg)=> { %>
-                  <% const messageDate=new Date(msg.createdAt); %>
-                    <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
-                      <div class="date-divider">
-                        <div class="message-date">
-                          <%= formatDate(messageDate) %>
-                        </div>
-                      </div>
-                      <% } %>
-                        <% previousDate=messageDate; %>
-                          <div
-                            class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
-                            data-message-id="<%= msg._id %>">
-                            <% if (msg.userId._id.toString() !==user._id.toString()) { %>
-                              <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>" alt="User"
-                                class="avatar">
-                              <% } %>
-                                <div class="message-bubble">
-                                  <% if (msg.userId._id.toString() !==user._id.toString()) { %>
-                                    <div id="chat-nameuser">
-                                      <%= msg.userId.firstName %>
-                                        <%= msg.userId.lastName %>
-                                    </div>
-                                    <% } %>
-                                      <%= msg.message %>
-                                        <div class="message-time">
-                                          <%= formatTime(messageDate) %>
-                                            <% if (msg.userId._id.toString()===user._id.toString()) { %>
-                                              <span class="read-status">เห็นแล้ว: <%= msg.readBy.length %> คน</span>
-                                              <% } %>
+    <div class="chat-container">
+        <div class="chat-seccon">
+            <div class="user-list">
+                <div class="headuser-list">
+                    <h2>แชท</h2>
+                    <button><i class='bx bxs-chevron-right'></i></button>
+                </div>
+                <div class="search-allchat">
+                    <input type="text" id="searchChatInput" placeholder="ค้นหาชื่อแชท...">
+                </div>
+                <div class="all-chat">
+                    <ul>
+                        <li class="<%= currentPage === 'group_chat' ? 'active' : '' %>"
+                            data-space-id="<%= spaces._id %>">
+                            <a href="/space/item/<%= spaces._id %>/chat">
+                                <img class="profileimage-chat" src="<%= spaces.projectCover %>" alt="Group Chat"
+                                    width="30">
+                                <div class="conmessage">
+                                    <div class="nameconuser">
+                                        <div class="nameuser">แชทกลุ่ม <%= spaces.projectName %>
                                         </div>
+                                        <div class="conuser">
+                                            <% if (lastGroupMessage) { %>
+                                                <% if (lastGroupMessage.userId &&
+                                                    lastGroupMessage.userId._id.toString()===user._id.toString()) { %>
+                                                    คุณ:
+                                                    <% if (lastGroupMessage.files && lastGroupMessage.files.length> 0) {
+                                                        %>
+                                                        แนบไฟล์
+                                                        <% } else { %>
+                                                            <%= lastGroupMessage.message %>
+                                                                <% } %>
+                                                                    <% } else { %>
+                                                                        <% if (lastGroupMessage.userId) { %>
+                                                                            <%= lastGroupMessage.userId.firstName %>:
+                                                                                <% if (lastGroupMessage.files &&
+                                                                                    lastGroupMessage.files.length> 0) {
+                                                                                    %>
+                                                                                    แนบไฟล์
+                                                                                    <% } else { %>
+                                                                                        <%= lastGroupMessage.message %>
+                                                                                            <% } %>
+                                                                                                <% } else { %>
+                                                                                                    <% if
+                                                                                                        (lastGroupMessage.files
+                                                                                                        &&
+                                                                                                        lastGroupMessage.files.length>
+                                                                                                        0) { %>
+                                                                                                        แนบไฟล์
+                                                                                                        <% } else { %>
+                                                                                                            <%= lastGroupMessage.message
+                                                                                                                %>
+                                                                                                                <% } %>
+                                                                                                                    <% }
+                                                                                                                        %>
+                                                                                                                        <% }
+                                                                                                                            %>
+                                                                                                                            <% }
+                                                                                                                                %>
+                                        </div>
+
+                                    </div>
+                                    <div class="timenotimessage">
+                                        <div class="timemessage">
+                                            <% if (lastGroupMessage) { %>
+                                                <%= formatTime(new Date(lastGroupMessage.createdAt)) %>
+                                                    <% } else { %>
+                                                        <% } %>
+                                        </div>
+                                        <div class="notimesaage"></div>
+                                    </div>
                                 </div>
-                          </div>
-                          <% }); %>
+                            </a>
+                        </li>
+
+                        <% spaces.collaborators.forEach(collab=> { %>
+                            <% if (collab.user && collab.user._id.toString() !==user._id.toString()) { %>
+                                <li class="<%= currentChatUserId === collab.user._id.toString() ? 'active' : '' %>"
+                                    data-user-id="<%= collab.user._id %>">
+                                    <a href="/space/item/<%= spaces._id %>/chat/private/<%= collab.user._id %>">
+                                        <img class="profileimage-chat" src="<%= collab.user.profileImage %>"
+                                            alt="Profile" width="30">
+                                        <div class="conmessage">
+                                            <div class="nameconuser">
+                                                <div class="name-chat nameuser">
+                                                    <%= collab.user.firstName %>
+                                                        <%= collab.user.lastName %>
+                                                </div>
+                                                <div class="conuser">
+                                                    <% if (collab.lastMessage) { %>
+                                                        <% if (collab.lastMessageSender &&
+                                                            collab.lastMessageSender._id.toString()===user._id.toString())
+                                                            { %>
+                                                            คุณ:
+                                                            <% if (collab.lastMessage.files &&
+                                                                collab.lastMessage.files.length> 0) { %>
+                                                                แนบไฟล์
+                                                                <% } else { %>
+                                                                    <%= collab.lastMessage %>
+                                                                        <% } %>
+                                                                            <% } else { %>
+                                                                                <% if (collab.lastMessageSender) { %>
+                                                                                    <%= collab.lastMessageSender.firstName
+                                                                                        %>:
+                                                                                        <% if (collab.lastMessage.files
+                                                                                            &&
+                                                                                            collab.lastMessage.files.length>
+                                                                                            0) { %>
+                                                                                            แนบไฟล์
+                                                                                            <% } else { %>
+                                                                                                <%= collab.lastMessage
+                                                                                                    %>
+                                                                                                    <% } %>
+                                                                                                        <% } else { %>
+                                                                                                            <% if
+                                                                                                                (collab.lastMessage.files
+                                                                                                                &&
+                                                                                                                collab.lastMessage.files.length>
+                                                                                                                0) { %>
+                                                                                                                แนบไฟล์
+                                                                                                                <% } else
+                                                                                                                    { %>
+                                                                                                                    <%= collab.lastMessage
+                                                                                                                        %>
+                                                                                                                        <% }
+                                                                                                                            %>
+                                                                                                                            <% }
+                                                                                                                                %>
+                                                                                                                                <% }
+                                                                                                                                    %>
+                                                                                                                                    <% }
+                                                                                                                                        %>
+                                                </div>
+                                            </div>
+                                            <div class="timenotimessage">
+                                                <div class="timemessage" id="last-message-time-<%= collab.user._id %>">
+                                                    <% if (collab.lastMessageTime) { %>
+                                                        <%= formatTime(new Date(collab.lastMessageTime)) %>
+                                                            <% } %>
+                                                </div>
+                                                <div class="notimesaage"></div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <% } %>
+                                    <% }); %>
+                    </ul>
+                </div>
             </div>
-          </div>
-          <div class="btn-new-message">
-            <button class="new-message-btn">
-              <i class='bx bxs-chevron-down'></i>
-            </button>
-          </div>
-          <div class="chat-formsubmit" id="chat-sec">
-            <form class="chat-form" id="chatForm">
-              <div class="chaticon">
-                <div class="chat-img" id="icon-chat"><i class='bx bx-image-alt'></i></div>
-                <div class="chat-file" id="icon-chat"><i class='bx bx-paperclip'></i></div>
-              </div>
-              <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..." required
-                autocomplete="off">
-              <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
-            </form>
-          </div>
+            <div class="chat-secright">
+                <div class="chat-head" id="chat-sec">
+                    <img class="profileimage-chat" src="<%= targetUser.profileImage || '/images/default-profile.png' %>"
+                        alt="รูปโปรไฟล์ของ <%= targetUser.firstName %>">
+                    <div class="chatprivetename">
+                        <span id="privetename">แชทส่วนตัวกับ <%= targetUser.firstName %>
+                                <%= targetUser.lastName %></span>
+                        <div class="online-member"></div>
+                    </div>
+                </div>
+                <div class="chat-con" id="chat-sec1">
+                    <div class="messages" id="messages">
+                        <% let previousDate=null; %>
+                            <% messages.forEach((msg)=> { %>
+                                <% const messageDate=new Date(msg.createdAt); %>
+                                    <% if (previousDate===null || isNewDay(previousDate, messageDate)) { %>
+                                        <div class="date-divider">
+                                            <div class="message-date">
+                                                <%= formatDate(messageDate) %>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                            <% previousDate=messageDate; %>
+                                                <div class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
+                                                    data-message-id="<%= msg._id %>">
+                                                    <% if (msg.userId._id.toString() !==user._id.toString()) { %>
+                                                        <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>"
+                                                            alt="User" class="avatar">
+                                                        <% } %>
+                                                            <div class="message-bubble">
+                                                                <% if (msg.userId._id.toString() !==user._id.toString())
+                                                                    { %>
+                                                                    <div id="chat-nameuser">
+                                                                        <%= msg.userId.firstName %>
+                                                                            <%= msg.userId.lastName %>
+                                                                    </div>
+                                                                    <% } %>
+
+                                                                        <div class="message-content">
+                                                                            <%- msg.message %>
+                                                                        </div>
+
+                                                                        <!-- แสดงไฟล์แนบ -->
+                                                                        <% if (msg.files && msg.files.length> 0) { %>
+                                                                            <div class="attached-files"
+                                                                                style="margin-top: 10px;">
+                                                                                <% msg.files.forEach(file=> { %>
+                                                                                    <% if
+                                                                                        (file.mimetype.startsWith('image/'))
+                                                                                        { %>
+                                                                                        <div class="file-preview"
+                                                                                            style="margin-bottom: 5px;">
+                                                                                            <img src="<%= file.url %>"
+                                                                                                alt="<%= file.originalname %>"
+                                                                                                style="max-width: 200px; max-height: 200px; cursor: pointer;"
+                                                                                                onclick="showImageModal('<%= file.url %>')">
+                                                                                        </div>
+                                                                                        <% } else { %>
+                                                                                            <div class="file-preview"
+                                                                                                style="margin-bottom: 5px;">
+                                                                                                <a href="<%= file.url %>"
+                                                                                                    download="<%= file.originalname %>"
+                                                                                                    style="display: inline-block; padding: 5px 10px; background: #f0f0f0; border-radius: 4px;">
+                                                                                                    <i
+                                                                                                        class="bx bx-file"></i>
+                                                                                                    <%= file.originalname
+                                                                                                        %>
+                                                                                                </a>
+                                                                                            </div>
+                                                                                            <% } %>
+                                                                                                <% }) %>
+                                                                            </div>
+                                                                            <% } %>
+
+                                                                                <div class="message-time">
+                                                                                    <%= formatTime(messageDate) %>
+                                                                                        <% if
+                                                                                            (msg.userId._id.toString()===user._id.toString())
+                                                                                            { %>
+                                                                                            <span
+                                                                                                class="read-status">เห็นแล้ว:
+                                                                                                <%
+                                                                                                    const
+                                                                                                    readCount=msg.readBy.length;
+                                                                                                    %>
+                                                                                                    <%= readCount %> คน
+                                                                                            </span>
+                                                                                            <% } %>
+                                                                                </div>
+                                                            </div>
+                                                </div>
+                                                <% }); %>
+                    </div>
+                </div>
+                <div class="btn-new-message">
+                    <button class="new-message-btn">
+                        <i class='bx bxs-chevron-down'></i>
+                    </button>
+                </div>
+                <div class="chat-formsubmit" id="chat-sec">
+                    <form class="chat-form" id="chatForm" enctype="multipart/form-data">
+                        <div class="showimgfile-chat">
+                            <!-- ไฟล์ที่เลือกจะแสดงที่นี่ -->
+                        </div>
+                        <div class="mention-list" id="mentionList">
+                            <div class="mention-menu">
+                                <div class="mention-tab active" data-tab="tasks">Tasks</div>
+                            </div>
+                            <ul id="mentionTaskList"></ul>
+                        </div>
+                        <div class="forminput-chat">
+                            <div class="chaticon">
+                                <div class="chat-img" id="icon-chat" title="เพิ่มรูปภาพ"><i class='bx bx-image-alt'></i>
+                                </div>
+                                <div class="chat-file" id="icon-chat" title="เพิ่มไฟล์"><i class='bx bx-paperclip'></i>
+                                </div>
+                            </div>
+
+                            <input type="text" id="messageInput" name="message" placeholder="พิมพ์ข้อความ..."
+                                autocomplete="off">
+                            <button type="submit"><i class='bx bx-send' style='color:#ffffff'></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-  </div>
-
-  <script>
-    // เมื่อโหลดหน้าเว็บเสร็จ
-    document.addEventListener('DOMContentLoaded', () => {
-      // ตรวจสอบ URL ปัจจุบันเพื่อกำหนด active item
-      const path = window.location.pathname;
-      const chatItems = document.querySelectorAll('.user-list li');
-
-      chatItems.forEach(item => {
-        // ลบคลาส active ออกจากทั้งหมดก่อน
-        item.classList.remove('active');
-
-        // ตรวจสอบว่าเป็นลิงก์ปัจจุบันหรือไม่
-        const link = item.querySelector('a');
-        if (link && link.getAttribute('href') === path) {
-          item.classList.add('active');
-        }
-      });
-    });
-
-    // เมื่อคลิกที่รายการแชท
-    document.querySelectorAll('.user-list li').forEach(item => {
-      item.addEventListener('click', function () {
-        // ลบคลาส active ออกจากทั้งหมด
-        document.querySelectorAll('.user-list li').forEach(li => {
-          li.classList.remove('active');
-        });
-
-        // เพิ่มคลาส active ให้กับรายการที่คลิก
-        this.classList.add('active');
-      });
-    });
-  </script>
-
-  <script>
-    socket.on('update last group message', (message) => {
-      console.log('🔄 อัปเดตข้อความล่าสุดของแชทกลุ่ม:', message);
-
-      // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
-      if (!message || !message.spaceId) {
-        console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
-        return;
-      }
-
-      // หา li ที่เป็นของแชทกลุ่ม
-      const groupChatElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .conuser');
-      const groupTimeElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .timemessage');
-
-      if (groupChatElement) {
-        // ตรวจสอบว่ามี userId ในข้อความหรือไม่
-        if (message.userId && message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
-          groupChatElement.textContent = 'คุณ: ' + (message.message || 'ไม่มีข้อความล่าสุด');
-        } else {
-          // ถ้าไม่มีข้อมูลผู้ส่ง หรือไม่ใช่ผู้ใช้ปัจจุบัน
-          const senderName = message.userId ? message.userId.firstName + ': ' : '';
-          groupChatElement.textContent = senderName + (message.message || 'ไม่มีข้อความล่าสุด');
-        }
-      }
-
-      if (groupTimeElement && message.createdAt) {
-        groupTimeElement.textContent = formatTime(new Date(message.createdAt));
-      }
-    });
-
-    socket.on('update last private message', (message) => {
-      console.log('🔄 อัปเดตข้อความล่าสุดของแชทส่วนตัว:', message);
-
-      // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
-      if (!message || !message.userId || !message.targetUserId) {
-        console.error('ข้อมูลข้อความไม่ครบถ้วน:', message);
-        return;
-      }
-
-      // หา userId ของผู้สนทนา
-      const otherUserId = message.userId._id && message.userId._id.toString() === '<%= user._id %>'
-        ? (message.targetUserId._id || '').toString()
-        : (message.userId._id || '').toString();
-
-      // หา li ที่เป็นของแชทเดี่ยว
-      const privateChatElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .conuser');
-      const privateTimeElement = document.querySelector('li[data-user-id="' + otherUserId + '"] .timemessage');
-
-      if (privateChatElement) {
-        if (message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
-          privateChatElement.textContent = 'คุณ: ' + (message.message || '');
-        } else {
-          privateChatElement.textContent = message.message || '';
-        }
-      }
-      if (privateTimeElement && message.createdAt) {
-        privateTimeElement.textContent = formatTime(new Date(message.createdAt));
-      }
-    });
-  </script>
-
-  <script>
-    // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
-    function formatTime(date) {
-      let hours = date.getHours();
-      let minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // ชั่วโมง 0 จะเป็น 12 AM
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      return `${hours}:${minutes} ${ampm}`;
-    }
-
-    // ฟังก์ชันสำหรับตรวจสอบการเปลี่ยนวัน
-    function isNewDay(date1, date2) {
-      return (
-        date1.getFullYear() !== date2.getFullYear() ||
-        date1.getMonth() !== date2.getMonth() ||
-        date1.getDate() !== date2.getDate()
-      );
-    }
-
-    // ฟังก์ชันสำหรับจัดรูปแบบวันที่
-    function formatDate(date) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return date.toLocaleDateString('th-TH', options);
-    }
-
-    // เมื่อผู้ใช้อยู่ในหน้าแชทส่วนตัว
-    socket.emit('user in private chat', {
-      userId: '<%= user._id %>',
-      targetUserId: '<%= targetUser._id %>',
-      spaceId: '<%= spaces._id %>'
-    });
-
-    // เมื่อผู้ใช้ออกจากหน้าแชทส่วนตัว
-    window.addEventListener('beforeunload', () => {
-      socket.emit('user left private chat', {
-        userId: '<%= user._id %>',
-        targetUserId: '<%= targetUser._id %>',
-        spaceId: '<%= spaces._id %>'
-      });
-    });
 
 
 
-    // ส่งข้อความส่วนตัว
-    document.getElementById('chatForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const message = document.getElementById('messageInput').value;
-      socket.emit('send private message', {
-        spaceId: '<%= spaces._id %>',
-        message,
-        userId: '<%= user._id %>',
-        targetUserId: '<%= targetUser._id %>'
-      });
-      document.getElementById('messageInput').value = '';
-    });
+    <script>
 
-    // รับสถานะข้อความที่ถูกอ่าน
-    socket.on('private message read', (data) => {
-      const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
-      if (messageElement) {
-        const readStatusElement = messageElement.querySelector('.read-status');
-        if (readStatusElement) {
-          readStatusElement.textContent = `เห็นแล้ว: ${data.readByCount} คน`;
-        }
-      }
-    });
-  </script>
-
-  <script>
-    const messagesContainer = document.getElementById("messages");
-    const newMessageButton = document.querySelector('.new-message-btn');
-    const chatSecRight = document.querySelector('.chat-secright');
-
-    let userScrolledUp = false;
-    let lastScrollPosition = localStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
-
-    messagesContainer.scrollTop = lastScrollPosition;
-    function checkScrollPosition() {
-      const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
-      if (!nearBottom) {
-        newMessageButton.classList.add("show");
-      } else {
-        newMessageButton.classList.remove("show");
-      }
-    }
-
-    messagesContainer.addEventListener("scroll", checkScrollPosition);
-
-    newMessageButton.addEventListener("click", () => {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      newMessageButton.classList.remove("show");
-    });
-
-
-    // บันทึกตำแหน่งการเลื่อน
-    function saveScrollPosition() {
-      localStorage.setItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`, messagesContainer.scrollTop);
-    }
-
-    // กู้คืนตำแหน่งการเลื่อนเมื่อโหลดหน้า
-    function restoreScrollPosition() {
-      const savedPosition = localStorage.getItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`);
-      if (savedPosition) {
-        messagesContainer.scrollTop = parseInt(savedPosition);
-      } else {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
-    }
-
-    // เรียกใช้เมื่อโหลดหน้า
-    restoreScrollPosition();
-    checkScrollPosition();
-
-    // จัดการเหตุการณ์การเลื่อน
-    messagesContainer.addEventListener("scroll", () => {
-      checkScrollPosition();
-      saveScrollPosition();
-    });
-
-    // เมื่อคลิกปุ่มเลื่อนลงล่าง
-    newMessageButton.addEventListener("click", () => {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      newMessageButton.classList.remove("show");
-      saveScrollPosition();
-    });
-
-    // บันทึกตำแหน่งเมื่อเปลี่ยนแท็บหรือปิดหน้าต่าง
-    window.addEventListener("beforeunload", saveScrollPosition);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === 'hidden') {
-        saveScrollPosition();
-      }
-    });
-
-    // แก้ไขส่วนรับข้อความใหม่
-    socket.on('private message', (msg) => {
-      const messagesContainer = document.getElementById('messages');
-      const messageDate = new Date(msg.createdAt);
-
-      // ตรวจสอบการเปลี่ยนวัน
-      const lastMessage = messagesContainer.lastElementChild;
-      if (lastMessage && lastMessage.classList.contains('message')) {
-        const lastMessageDate = new Date(lastMessage.dataset.timestamp);
-        if (isNewDay(lastMessageDate, messageDate)) {
-          const dateDivider = document.createElement('div');
-          dateDivider.classList.add('date-divider');
-          dateDivider.textContent = formatDate(messageDate);
-          messagesContainer.appendChild(dateDivider);
-        }
-      }
-
-      // สร้าง element สำหรับข้อความใหม่
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('message', msg.userId._id === '<%= user._id %>' ? 'current-user' : 'other-user');
-      messageElement.dataset.messageId = msg._id;
-      messageElement.dataset.timestamp = msg.createdAt;
-
-      messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
-      <img src="${msg.userId.profileImage}" alt="User" class="avatar">
-      <div class="message-bubble">
-        <div id="chat-nameuser">${msg.userId.firstName} ${msg.userId.lastName}</div>
-        ${msg.message}
-        <div class="message-time">${formatTime(messageDate)}</div>
-      </div>
-    ` : `
-      <div class="message-bubble">
-        ${msg.message}
-        <div class="message-time">
-          ${formatTime(messageDate)}
-          <span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
-        </div>
-      </div>
-    `;
-
-      messagesContainer.appendChild(messageElement);
-
-      // เลื่อนลงล่างเฉพาะเมื่อผู้ใช้ไม่ได้เลื่อนขึ้นดูข้อความเก่า
-      const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
-      if (nearBottom) {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
-      saveScrollPosition();
-
-      // อัปเดตสถานะ active เมื่อได้รับข้อความใหม่
-      document.querySelectorAll('.user-list li').forEach(li => {
-        li.classList.remove('active');
-
-        // ตรวจสอบว่าเป็นแชทกับผู้ส่งข้อความหรือไม่
-        const userId = li.dataset.userId;
-        if (userId &&
-          (userId === msg.userId._id.toString() ||
-            userId === msg.targetUserId.toString())) {
-          li.classList.add('active');
-        }
-      });
-      if (window.location.pathname !== `/space/item/${msg.spaceId}/chat/private/${msg.userId._id}`) {
-        fetchUnreadCounts();
-      }
-    });
-  </script>
-
-  <script>
-    // ฟังก์ชันดึงจำนวนข้อความที่ยังไม่อ่าน
-    async function fetchUnreadCounts() {
-      try {
-        const spaceId = '<%= spaces._id %>';
-        const userId = '<%= user._id %>';
-        const path = window.location.pathname;
-
-        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
-        const groupResponse = await fetch(`/space/item/${spaceId}/chat/unread-count`);
-        const groupData = await groupResponse.json();
-
-        const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"]');
-        if (groupChatElement) {
-          const notiElement = groupChatElement.querySelector('.notimesaage');
-
-          // ตรวจสอบว่าผู้ใช้กำลังอยู่ในหน้าแชทกลุ่มหรือไม่
-          const isInGroupChat = path === `/space/item/${spaceId}/chat`;
-
-          if (groupData.unreadCount > 0 && !isInGroupChat) {
-            groupChatElement.classList.add('unread');
-            notiElement.textContent = groupData.unreadCount;
-            notiElement.style.display = 'flex';
-          } else {
-            groupChatElement.classList.remove('unread');
-            notiElement.style.display = 'none';
-          }
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัว
-        const collaborators = document.querySelectorAll('li[data-user-id]');
-        collaborators.forEach(async (collab) => {
-          const targetUserId = collab.dataset.userId;
-          const privateResponse = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/unread-count`);
-          const privateData = await privateResponse.json();
 
-          if (privateData.success) {
-            const notiElement = collab.querySelector('.notimesaage');
+        // ฟังก์ชันอัปโหลดไฟล์
+        const showImgFileChat = document.querySelector('.showimgfile-chat');
+        const chatImgIcon = document.querySelector('.chat-img');
+        const chatFileIcon = document.querySelector('.chat-file');
+        let selectedFiles = [];
+        let isSending = false;
 
-            // ตรวจสอบว่าผู้ใช้กำลังอยู่ในแชทส่วนตัวกับผู้ใช้นี้หรือไม่
-            const isInPrivateChat = path === `/space/item/${spaceId}/chat/private/${targetUserId}`;
+        // ฟังก์ชันแสดงไฟล์ที่เลือก
+        function displaySelectedFiles() {
+            showImgFileChat.innerHTML = '';
 
-            if (privateData.unreadCount > 0 && !isInPrivateChat) {
-              collab.classList.add('unread');
-              notiElement.textContent = privateData.unreadCount;
-              notiElement.style.display = 'flex';
-            } else {
-              collab.classList.remove('unread');
-              notiElement.style.display = 'none';
+            if (selectedFiles.length === 0) {
+                showImgFileChat.style.display = 'none';
+                return;
             }
-          }
+
+            const fileList = document.createElement('div');
+            fileList.className = 'file-list';
+
+            selectedFiles.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'file-item';
+
+                if (file.type.startsWith('image/')) {
+                    // แสดงตัวอย่างภาพ
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        fileElement.innerHTML = `
+                  <div class="file-content">
+                    <div class="image-preview">
+                      <img src="${e.target.result}" alt="ตัวอย่างภาพ">
+                    </div>
+                    <div class="file-info">
+                      <div class="file-name">${file.name}</div>
+                      <div class="file-meta">
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                      </div>
+                    </div>
+                    <button class="remove-file" data-index="${index}">
+                      <i class="bx bx-x"></i>
+                    </button>
+                  </div>
+                `;
+
+                        fileElement.querySelector('.remove-file').addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            selectedFiles.splice(index, 1);
+                            displaySelectedFiles();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // แสดงไอคอนไฟล์ตามประเภท
+                    let fileIcon = '';
+                    if (file.type.includes('pdf')) {
+                        fileIcon = '<i class="bx bxs-file-pdf file-icon"></i>';
+                    } else if (file.type.includes('word') || file.type.includes('document')) {
+                        fileIcon = '<i class="bx bxs-file-doc file-icon"></i>';
+                    } else if (file.type.includes('excel') || file.type.includes('spreadsheet')) {
+                        fileIcon = '<i class="bx bxs-file-xls file-icon"></i>';
+                    } else {
+                        fileIcon = '<i class="bx bx-file file-icon"></i>';
+                    }
+
+                    fileElement.innerHTML = `
+                <div class="file-content">
+                  <div class="file-icon-container">
+                    ${fileIcon}
+                  </div>
+                  <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-meta">
+                      <span class="file-size">${formatFileSize(file.size)}</span>
+                    </div>
+                  </div>
+                  <button class="remove-file" data-index="${index}">
+                    <i class="bx bx-x"></i>
+                  </button>
+                </div>
+              `;
+
+                    fileElement.querySelector('.remove-file').addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        selectedFiles.splice(index, 1);
+                        displaySelectedFiles();
+                    });
+                }
+
+                fileList.appendChild(fileElement);
+            });
+
+            showImgFileChat.appendChild(fileList);
+            showImgFileChat.style.display = 'block';
+        }
+
+        // การจัดการเมื่อคลิกที่ไอคอนรูปภาพ (เฉพาะไฟล์รูปภาพ)
+        chatImgIcon.addEventListener('click', function () {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.multiple = true;
+            fileInput.onchange = (e) => {
+                const files = Array.from(e.target.files);
+                const validFiles = files.filter(file => file.type.startsWith('image/'));
+                if (validFiles.length !== files.length) {
+                    alert('กรุณาเลือกเฉพาะไฟล์รูปภาพเท่านั้น!');
+                }
+                selectedFiles = [...selectedFiles, ...validFiles];
+                displaySelectedFiles();
+            };
+            fileInput.click();
         });
 
-      } catch (error) {
-        console.error('Error fetching unread counts:', error);
-      }
-    }
-
-    // ฟังก์ชันทำเครื่องหมายข้อความว่าอ่านแล้ว
-    async function markMessagesAsRead() {
-      const path = window.location.pathname;
-      const spaceId = '<%= spaces._id %>';
-      const userId = '<%= user._id %>';
-
-      try {
-        // ตรวจสอบว่าเป็นแชทส่วนตัวหรือไม่
-        const privateChatMatch = path.match(/\/space\/item\/[^/]+\/chat\/private\/([^/]+)/);
-
-        if (privateChatMatch) {
-          // แชทส่วนตัว - ทำเครื่องหมายว่าอ่านแล้ว
-          const targetUserId = privateChatMatch[1];
-          await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/mark-as-read`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId })
-          });
-        } else {
-          // แชทกลุ่ม - ทำเครื่องหมายว่าอ่านแล้ว
-          await fetch(`/space/item/${spaceId}/chat/mark-group-read`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId })
-          });
-        }
-
-        // อัปเดตสถานะเฉพาะแชทที่เปิดอยู่เท่านั้น
-        const currentChatElement = document.querySelector('.user-list li.active');
-        if (currentChatElement) {
-          const notiElement = currentChatElement.querySelector('.notimesaage');
-          if (notiElement) {
-            notiElement.style.display = 'none';
-            currentChatElement.classList.remove('unread');
-          }
-        }
-      } catch (error) {
-        console.error('Error marking messages as read:', error);
-      }
-    }
-
-    // เรียกใช้เมื่อโหลดหน้า
-    document.addEventListener('DOMContentLoaded', () => {
-      // เรียกฟังก์ชันตรวจสอบ unread messages โดยไม่ mark as read ทันที
-      fetchUnreadCounts();
-
-      // เรียก mark as read เฉพาะเมื่อผู้ใช้คลิกที่แชท
-      document.querySelectorAll('.user-list li').forEach(item => {
-        item.addEventListener('click', function () {
-          // ตรวจสอบว่าไม่ใช่การคลิกที่แชทเดิม
-          if (!this.classList.contains('active')) {
-            setTimeout(markMessagesAsRead, 300);
-          }
+        // การจัดการเมื่อคลิกที่ไอคอนเอกสาร (เฉพาะไฟล์เอกสาร)
+        chatFileIcon.addEventListener('click', function () {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.multiple = true;
+            fileInput.onchange = (e) => {
+                const files = Array.from(e.target.files);
+                selectedFiles = [...selectedFiles, ...files];
+                displaySelectedFiles();
+            };
+            fileInput.click();
         });
-      });
-    });
 
-    // อัปเดตเมื่อมีข้อความใหม่
-    socket.on('new message', () => {
-      const path = window.location.pathname;
-      const spaceId = '<%= spaces._id %>';
+        // การส่งฟอร์ม
+        document.getElementById('chatForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (isSending) return;
 
-      // ตรวจสอบว่าข้อความใหม่ไม่ใช่ในแชทที่กำลังเปิดอยู่
-      if (!path.includes('/chat/private/') && !path.endsWith('/chat')) {
-        fetchUnreadCounts();
-      }
-    });
+            const messageInput = document.getElementById('messageInput');
+            let message = messageInput.value;
+            const spaceId = '<%= spaces._id %>';
+            const userId = '<%= user._id %>';
+            const targetUserId = '<%= targetUser._id %>';
 
-    socket.on('update last group message', (message) => {
-      // อัปเดตเฉพาะถ้าไม่ใช่แชทกลุ่มที่กำลังเปิดอยู่
-      if (!window.location.pathname.endsWith('/chat')) {
-        fetchUnreadCounts();
-      }
-    });
+            // ดึงข้อมูล mention จาก attribute (ถ้ามี)
+            const mentionHtml = messageInput.getAttribute('data-mention');
+            if (mentionHtml) {
+                message = message.replace(/@([^\s]+)/, mentionHtml);
+                messageInput.removeAttribute('data-mention');
+            }
 
-    socket.on('update last private message', (message) => {
-      const path = window.location.pathname;
-      const targetUserId = message.userId._id.toString() === '<%= user._id %>'
-        ? message.targetUserId._id.toString()
-        : message.userId._id.toString();
+            // Check if there's content to send
+            if (!message.trim() && selectedFiles.length === 0) {
+                alert('กรุณาเพิ่มข้อความหรือไฟล์ก่อนส่ง');
+                return;
+            }
 
-      // อัปเดตเฉพาะถ้าไม่ใช่แชทส่วนตัวที่กำลังเปิดอยู่
-      if (!path.includes(`/chat/private/${targetUserId}`)) {
-        fetchUnreadCounts();
-      }
-    });
-  </script>
-  <script>
-    // ฟังก์ชันค้นหาชื่อแชท
-    document.getElementById('searchChatInput').addEventListener('input', function (e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const chatItems = document.querySelectorAll('.all-chat li');
+            isSending = true;
 
-      chatItems.forEach(item => {
-        const chatName = item.querySelector('.nameuser').textContent.toLowerCase();
-        if (chatName.includes(searchTerm)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+                formData.append('type', 'private');
+                formData.append('spaceId', spaceId);
+                formData.append('targetUserId', targetUserId);
+
+                // Add all selected files
+                selectedFiles.forEach((file, index) => {
+                    formData.append(`files`, file);
+                });
+
+                const response = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/upload`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Clear form
+                        messageInput.value = '';
+                        selectedFiles = [];
+                        displaySelectedFiles();
+                    }
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+            } finally {
+                isSending = false;
+            }
+        });
+
+
+
+        // ปิดส่วนแสดงไฟล์เมื่อคลิกที่อื่นในหน้าเว็บ
+        document.addEventListener('click', function (e) {
+            if (!showImgFileChat.contains(e.target) &&
+                e.target !== chatImgIcon &&
+                e.target !== chatFileIcon &&
+                !chatImgIcon.contains(e.target) &&
+                !chatFileIcon.contains(e.target)) {
+                if (selectedFiles.length === 0) {
+                    showImgFileChat.style.display = 'none';
+                }
+            }
+        });
+
+        // ป้องกันการปิดเมื่อคลิกในส่วนแสดงไฟล์
+        showImgFileChat.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    </script>
+
+    <script>
+        // ฟังก์ชันแสดง modal รูปภาพเต็มหน้าจอ
+        function showImageModal(imageUrl) {
+            let modal = document.getElementById('imageModal');
+
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'imageModal';
+                modal.innerHTML = `
+        <div class="modal-overlay" onclick="hideImageModal()"></div>
+        <div class="modal-content">
+          <img src="" alt="Full size image" id="modalImage">
+          <a id="downloadBtn" href="#" download style="
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #ffffffcc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.2s;
+          ">ดาวน์โหลดรูปภาพ</a>
+        </div>
+      `;
+
+                document.body.appendChild(modal);
+            }
+
+            modal.querySelector('#modalImage').src = imageUrl;
+            modal.querySelector('#downloadBtn').href = imageUrl;
+
+            modal.style.display = 'flex';
+
+            document.addEventListener('keydown', function handleEsc(e) {
+                if (e.key === 'Escape') {
+                    hideImageModal();
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            });
         }
-      });
-    });
 
-    // เพิ่มสไตล์ CSS สำหรับการค้นหา
-    const style = document.createElement('style');
-    style.textContent = `
+        // ฟังก์ชันปิด modal
+        function hideImageModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // ฟังก์ชันเพิ่ม event ให้ภาพทั้งหมด รวมถึงภาพที่ถูกเพิ่มใหม่
+        function enableImagePreview() {
+            document.querySelectorAll('.image-preview img, .image-preview .file-content img, .attached-files img').forEach(img => {
+                if (!img.dataset.listenerAdded) {
+                    img.style.cursor = 'pointer';
+                    img.style.pointerEvents = 'auto';
+                    img.addEventListener('click', function () {
+                        showImageModal(this.src);
+                    });
+                    img.dataset.listenerAdded = "true";
+                }
+            });
+        }
+
+        // ตรวจจับเมื่อมีการเพิ่มไฟล์ใหม่ใน `.showimgfile-chat`
+        const observer = new MutationObserver(enableImagePreview);
+        observer.observe(document.querySelector('.showimgfile-chat'), { childList: true, subtree: true });
+
+        // เรียกใช้งานสำหรับภาพที่มีอยู่ตอนโหลดหน้า
+        document.addEventListener('DOMContentLoaded', enableImagePreview);
+
+        // รองรับภาพใหม่ที่เข้ามาทาง Socket.io
+        if (typeof socket !== 'undefined') {
+            socket.on('private message', function (msg) {
+                setTimeout(enableImagePreview, 100);
+            });
+        }
+    </script>
+
+    <script>
+        // ฟังก์ชันค้นหาชื่อแชท
+        document.getElementById('searchChatInput').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const chatItems = document.querySelectorAll('.all-chat li');
+
+            chatItems.forEach(item => {
+                const chatName = item.querySelector('.nameuser').textContent.toLowerCase();
+                if (chatName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // เพิ่มสไตล์ CSS สำหรับการค้นหา
+        const style = document.createElement('style');
+        style.textContent = `
           .search-chatmember {
             padding: 0 16px;
             margin-bottom: 8px;
@@ -1049,6 +1419,834 @@
             box-shadow: 0 0 0 2px rgba(0,123,255,.25);
           }
         `;
-    document.head.appendChild(style);
-  </script>
+        document.head.appendChild(style);
+    </script>
 
+    <script>
+        // เมื่อโหลดหน้าเว็บเสร็จ
+        document.addEventListener('DOMContentLoaded', () => {
+            // ตรวจสอบ URL ปัจจุบันเพื่อกำหนด active item
+            const path = window.location.pathname;
+            const chatItems = document.querySelectorAll('.user-list li');
+
+            chatItems.forEach(item => {
+                // ลบคลาส active ออกจากทั้งหมดก่อน
+                item.classList.remove('active');
+
+                // ตรวจสอบว่าเป็นลิงก์ปัจจุบันหรือไม่
+                const link = item.querySelector('a');
+                if (link && link.getAttribute('href') === path) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // เมื่อคลิกที่รายการแชท
+        document.querySelectorAll('.user-list li').forEach(item => {
+            item.addEventListener('click', function () {
+                // ลบคลาส active ออกจากทั้งหมด
+                document.querySelectorAll('.user-list li').forEach(li => {
+                    li.classList.remove('active');
+                });
+
+                // เพิ่มคลาส active ให้กับรายการที่คลิก
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+    <script>
+        socket.on('update last group message', (message) => {
+            console.log('🔄 อัปเดตข้อความล่าสุดของแชทกลุ่ม:', message);
+
+            // ตรวจสอบว่ามีข้อมูลไฟล์แนบ
+            const hasFiles = message.files && message.files.length > 0;
+
+            const groupChatElement = document.querySelector('li[data-space-id="' + message.spaceId + '"] .conuser');
+            if (groupChatElement) {
+                if (message.userId && message.userId._id && message.userId._id.toString() === '<%= user._id %>') {
+                    groupChatElement.textContent = 'คุณ: ' + (hasFiles ? 'แนบไฟล์' : message.message || '');
+                } else {
+                    const senderName = message.userId ? message.userId.firstName + ': ' : '';
+                    groupChatElement.textContent = senderName + (hasFiles ? 'แนบไฟล์' : message.message || '');
+                }
+            }
+        });
+
+        socket.on('update last private message', (message) => {
+            console.log('🔄 อัปเดตข้อความล่าสุดของแชทส่วนตัว:', message);
+
+            const currentUserId = '<%= user._id %>';
+            const otherUserId = message.userId._id && message.userId._id.toString() === currentUserId
+                ? (message.targetUserId._id || '').toString()
+                : (message.userId._id || '').toString();
+
+            const hasFiles = message.files && message.files.length > 0;
+
+            const lastMessageElement = document.querySelector(`li[data-user-id="${otherUserId}"] .conuser`);
+            if (lastMessageElement) {
+                if (message.userId._id && message.userId._id.toString() === currentUserId) {
+                    lastMessageElement.textContent = 'คุณ: ' + (hasFiles ? 'แนบไฟล์' : message.message || '');
+                } else {
+                    const senderName = message.userId ? message.userId.firstName + ': ' : '';
+                    lastMessageElement.textContent = senderName + (hasFiles ? 'แนบไฟล์' : message.message || '');
+                }
+            }
+        });
+
+    </script>
+
+    <script>
+        // ฟังก์ชันสำหรับจัดรูปแบบเวลาเป็น PM/AM
+        function formatTime(date) {
+            if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // ชั่วโมง 0 จะเป็น 12 AM
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+
+        // ฟังก์ชันสำหรับตรวจสอบการเปลี่ยนวัน
+        function isNewDay(date1, date2) {
+            return (
+                date1.getFullYear() !== date2.getFullYear() ||
+                date1.getMonth() !== date2.getMonth() ||
+                date1.getDate() !== date2.getDate()
+            );
+        }
+
+        // ฟังก์ชันจัดรูปแบบวันที่
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('th-TH', options);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            socket.emit('user in private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+
+            socket.on('private message read update', ({ userId, targetUserId }) => {
+                console.log('Updated read status for userId:', userId);
+                updateReadStatusOnUI(userId, targetUserId);
+            });
+        });
+
+
+
+        // เมื่อผู้ใช้ออกจากหน้าแชทส่วนตัว
+        window.addEventListener('beforeunload', () => {
+            socket.emit('user left private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>',
+            });
+        });
+
+
+        // ส่งข้อความส่วนตัว
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = document.getElementById('messageInput').value.trim();
+            if (!message) return; // ไม่ส่งหากข้อความว่างเปล่า
+
+            document.getElementById('messageInput').value = '';
+        });
+
+    </script>
+
+    <script>
+        const messagesContainer = document.getElementById("messages");
+        const newMessageButton = document.querySelector('.new-message-btn');
+        const chatSecRight = document.querySelector('.chat-secright');
+
+        let userScrolledUp = false;
+        let lastScrollPosition = localStorage.getItem('lastScrollPosition_' + '<%= spaces._id %>_<%= targetUser._id %>') || messagesContainer.scrollHeight;
+
+        messagesContainer.scrollTop = lastScrollPosition;
+
+        messagesContainer.addEventListener("scroll", checkScrollPosition);
+
+        function checkScrollPosition() {
+            const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+            if (!nearBottom) {
+                newMessageButton.classList.add("show");
+            } else {
+                newMessageButton.classList.remove("show");
+            }
+
+            localStorage.setItem('lastScrollPosition_' + '<%= spaces._id %>_<%= targetUser._id %>', messagesContainer.scrollTop);
+        }
+
+
+        // บันทึกตำแหน่งการเลื่อน
+        function saveScrollPosition() {
+            localStorage.setItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`, messagesContainer.scrollTop);
+        }
+
+        // กู้คืนตำแหน่งการเลื่อนเมื่อโหลดหน้า
+        function restoreScrollPosition() {
+            const savedPosition = localStorage.getItem(`chatScroll_<%= spaces._id %>_<%= targetUser._id %>`);
+            if (savedPosition) {
+                messagesContainer.scrollTop = parseInt(savedPosition);
+            } else {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        // เรียกใช้เมื่อโหลดหน้า
+        restoreScrollPosition();
+        checkScrollPosition();
+
+        // จัดการเหตุการณ์การเลื่อน
+        messagesContainer.addEventListener("scroll", () => {
+            checkScrollPosition();
+            saveScrollPosition();
+        });
+
+        // เมื่อคลิกปุ่มเลื่อนลงล่าง
+        newMessageButton.addEventListener("click", () => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            newMessageButton.classList.remove("show");
+            // Update position when clicking scroll-to-bottom button
+            localStorage.setItem('lastScrollPosition_' + '<%= spaces._id %>_<%= targetUser._id %>', messagesContainer.scrollTop);
+        });
+
+        window.addEventListener('load', () => {
+            const savedPosition = localStorage.getItem('lastScrollPosition_' + '<%= spaces._id %>_<%= targetUser._id %>');
+            if (savedPosition) {
+                messagesContainer.scrollTop = parseInt(savedPosition);
+            }
+        });
+
+        // บันทึกตำแหน่งเมื่อเปลี่ยนแท็บหรือปิดหน้าต่าง
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'hidden') {
+                sessionStorage.setItem('lastScrollPosition', messagesContainer.scrollTop);
+            } else {
+                messagesContainer.scrollTop = sessionStorage.getItem('lastScrollPosition') || messagesContainer.scrollHeight;
+            }
+        });
+
+        document.addEventListener("visibilitychange", saveScrollPosition);
+
+        window.addEventListener("beforeunload", saveScrollPosition);
+
+
+        // แก้ไขส่วนรับข้อความใหม่
+        socket.on('private message', (msg) => {
+            const messagesContainer = document.getElementById('messages');
+            const messageDate = new Date(msg.createdAt);
+
+            // ตรวจสอบข้อความล่าสุดใน container เพื่อดูวันที่
+            const lastMessage = messagesContainer.lastElementChild;
+            let shouldAddDateDivider = true;
+
+            if (lastMessage && lastMessage.classList.contains('message')) {
+                const lastMessageDate = new Date(lastMessage.dataset.timestamp);
+                if (!isNewDay(lastMessageDate, messageDate)) {
+                    shouldAddDateDivider = false;
+                }
+            }
+
+            // เพิ่ม date-divider ถ้าวันที่เปลี่ยน
+            if (shouldAddDateDivider) {
+                const dateDivider = document.createElement('div');
+                dateDivider.classList.add('date-divider');
+                dateDivider.innerHTML = `
+      <div class="message-date">
+        ${formatDate(messageDate)}
+      </div>
+    `;
+                messagesContainer.appendChild(dateDivider);
+            }
+
+            // สร้าง element สำหรับข้อความใหม่
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', msg.userId._id === '<%= user._id %>' ? 'current-user' : 'other-user');
+            messageElement.dataset.messageId = msg._id;
+            messageElement.dataset.timestamp = msg.createdAt;
+
+            // Build files HTML if they exist
+            let filesHtml = '';
+            if (msg.files && msg.files.length > 0) {
+                filesHtml = '<div class="attached-files" style="margin-top: 10px;">';
+                msg.files.forEach(file => {
+                    if (file.mimetype.startsWith('image/')) {
+                        filesHtml += `
+          <div class="file-preview" style="margin-bottom: 5px;">
+            <img src="${file.url}" alt="${file.originalname}" 
+                 style="max-width: 200px; max-height: 200px; cursor: pointer;"
+                 onclick="showImageModal('${file.url}')">
+          </div>
+        `;
+                    } else {
+                        filesHtml += `
+          <div class="file-preview" style="margin-bottom: 5px;">
+            <a href="${file.url}" download="${file.originalname}" 
+               style="display: inline-block; padding: 5px 10px; background: #f0f0f0; border-radius: 4px;">
+              <i class="bx bx-file"></i> ${file.originalname}
+            </a>
+          </div>
+        `;
+                    }
+                });
+                filesHtml += '</div>';
+            }
+
+            // Set message HTML
+            messageElement.innerHTML = msg.userId._id !== '<%= user._id %>' ? `
+    <img src="${msg.userId.profileImage || '/img/profileImage/Profile.jpeg'}" alt="User" class="avatar">
+    <div class="message-bubble">
+      <div id="chat-nameuser">${msg.userId.firstName} ${msg.userId.lastName}</div>
+      <div class="message-content">${msg.message || ''}</div>
+      ${filesHtml}
+      <div class="message-time">${formatTime(new Date(msg.createdAt))}</div>
+    </div>
+  ` : `
+    <div class="message-bubble">
+      <div class="message-content">${msg.message || ''}</div>
+      ${filesHtml}
+      <div class="message-time">${formatTime(new Date(msg.createdAt))}
+        <span class="read-status">เห็นแล้ว: ${msg.readBy.length} คน</span>
+      </div>
+    </div>
+  `;
+
+            messagesContainer.appendChild(messageElement);
+
+            // Enable image preview for newly added files
+            enableImagePreview()
+            messagesContainer.appendChild(messageElement);
+
+            // เลื่อนลงล่างเฉพาะเมื่อผู้ใช้ไม่ได้เลื่อนขึ้นดูข้อความเก่า
+            const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+            if (!nearBottom) {
+                newMessageButton.classList.add("show");
+            }
+            saveScrollPosition();
+
+            // อัปเดตสถานะ active เมื่อได้รับข้อความใหม่
+            document.querySelectorAll('.user-list li').forEach(li => {
+                li.classList.remove('active');
+
+                // ตรวจสอบว่าเป็นแชทกับผู้ส่งข้อความหรือไม่
+                const userId = li.dataset.userId;
+                if (userId &&
+                    (userId === msg.userId._id.toString() ||
+                        userId === msg.targetUserId.toString())) {
+                    li.classList.add('active');
+                }
+            });
+            updateLastPrivateMessage(msg);
+
+            if (msg.userId._id.toString() !== '<%= user._id %>') {
+                // ส่งคำขอทำเครื่องหมายว่าอ่านแล้ว
+                socket.emit('mark private message as read', {
+                    messageId: msg._id,
+                    userId: '<%= user._id %>',
+                    targetUserId: '<%= targetUser._id %>'
+                });
+            }
+
+            // อัปเดตจำนวนข้อความที่ยังไม่อ่าน
+            fetchUnreadCounts();
+        });
+
+
+
+
+        // ฟังก์ชันสำหรับอัปเดตข้อความล่าสุด
+        function updateLastPrivateMessage(msg) {
+            const currentUserId = '<%= user._id %>';
+            let otherUserId;
+
+            // ตรวจสอบว่าใครเป็นผู้ส่งและผู้รับ
+            if (msg.userId._id.toString() === currentUserId) {
+                otherUserId = msg.targetUserId._id.toString();
+            } else {
+                otherUserId = msg.userId._id.toString();
+            }
+
+            // หา element ที่เกี่ยวข้อง
+            const lastMessageElement = document.querySelector(`#last-message-${otherUserId}`);
+            const lastTimeElement = document.querySelector(`#last-message-time-${otherUserId}`);
+
+            if (lastMessageElement) {
+                if (msg.userId._id.toString() === currentUserId) {
+                    lastMessageElement.textContent = `คุณ: ${msg.message}`;
+                } else {
+                    lastMessageElement.textContent = msg.message;
+                }
+            }
+
+            if (lastTimeElement) {
+                lastTimeElement.textContent = formatTime(msg.createdAt);
+            }
+        }
+    </script>
+
+    <script>
+        // ฟังก์ชันดึงจำนวนข้อความที่ยังไม่อ่าน
+        async function fetchUnreadCounts() {
+            try {
+                const spaceId = '<%= spaces._id %>';
+                const userId = '<%= user._id %>';
+                const path = window.location.pathname;
+
+                // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทกลุ่ม
+                const groupResponse = await fetch(`/space/item/${spaceId}/chat/unread-count`);
+                const groupData = await groupResponse.json();
+
+                const groupChatElement = document.querySelector('li[data-space-id="' + spaceId + '"]');
+                if (groupChatElement) {
+                    const notiElement = groupChatElement.querySelector('.notimesaage');
+                    const isInGroupChat = path === `/space/item/${spaceId}/chat`;
+
+                    if (groupData.unreadCount > 0 && !isInGroupChat) {
+                        groupChatElement.classList.add('unread');
+                        notiElement.textContent = groupData.unreadCount;
+                        notiElement.style.display = 'flex';
+                    } else {
+                        groupChatElement.classList.remove('unread');
+                        notiElement.style.display = 'none';
+                    }
+                }
+
+                // ดึงข้อมูลจำนวนข้อความที่ยังไม่อ่านในแชทส่วนตัว
+                const collaborators = document.querySelectorAll('li[data-user-id]');
+                for (const collab of collaborators) {
+                    const targetUserId = collab.dataset.userId;
+                    const privateResponse = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/unread-count`);
+                    const privateData = await privateResponse.json();
+
+                    if (privateData.success) {
+                        const notiElement = collab.querySelector('.notimesaage');
+                        const isInPrivateChat = path === `/space/item/${spaceId}/chat/private/${targetUserId}`;
+
+                        if (privateData.unreadCount > 0 && !isInPrivateChat) {
+                            collab.classList.add('unread');
+                            notiElement.textContent = privateData.unreadCount;
+                            notiElement.style.display = 'flex';
+                        } else {
+                            collab.classList.remove('unread');
+                            notiElement.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching unread counts:', error);
+            }
+        }
+
+        // เพิ่ม listener สำหรับอัปเดตแบบเรียลไทม์
+        socket.on('update unread count', ({ spaceId, senderId, targetUserId, message }) => {
+            const currentUserId = '<%= user._id %>';
+
+            // ตรวจสอบว่าเป็นข้อความที่ส่งถึงผู้ใช้ปัจจุบันหรือไม่
+            if (targetUserId === currentUserId || senderId === currentUserId) {
+                // อัปเดตจำนวนข้อความที่ยังไม่อ่าน
+                fetchUnreadCounts();
+
+                // อัปเดตข้อความล่าสุดแบบเรียลไทม์
+                updateLastMessageDisplay(senderId, targetUserId, message);
+            }
+        });
+
+        // ฟังก์ชันอัปเดตการแสดงข้อความล่าสุด
+        function updateLastMessageDisplay(senderId, targetUserId, message) {
+            const currentUserId = '<%= user._id %>';
+            let otherUserId = senderId === currentUserId ? targetUserId : senderId;
+
+            const lastMessageElement = document.querySelector(`#last-message-${otherUserId}`);
+            const lastTimeElement = document.querySelector(`#last-message-time-${otherUserId}`);
+            const chatItem = document.querySelector(`li[data-user-id="${otherUserId}"]`);
+
+            if (lastMessageElement) {
+                if (senderId === currentUserId) {
+                    lastMessageElement.textContent = `คุณ: ${message}`;
+                } else {
+                    lastMessageElement.textContent = message;
+                }
+            }
+
+            if (lastTimeElement) {
+                lastTimeElement.textContent = formatTime(new Date());
+            }
+
+            // เพิ่มคลาส unread ถ้าไม่ใช่แชทที่เปิดอยู่
+            const currentPath = window.location.pathname;
+            const isCurrentChat = currentPath.includes(`/chat/private/${otherUserId}`);
+
+            if (!isCurrentChat && chatItem) {
+                chatItem.classList.add('unread');
+
+                // อัปเดตจำนวนข้อความที่ยังไม่อ่าน
+                const notiElement = chatItem.querySelector('.notimesaage');
+                if (notiElement) {
+                    const currentCount = parseInt(notiElement.textContent) || 0;
+                    notiElement.textContent = currentCount;
+                    notiElement.style.display = 'flex';
+                }
+            }
+        }
+
+
+        // เรียกใช้ครั้งแรกเมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', fetchUnreadCounts);
+
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                markMessagesAsRead();
+            }
+        });
+
+
+
+
+        // ตั้งค่าการตรวจสอบเมื่อผู้ใช้เลื่อน
+        let debounceTimer;
+        messagesContainer.addEventListener('scroll', () => {
+            // ใช้ debounce เพื่อป้องกันการเรียกฟังก์ชันบ่อยเกินไป
+            clearTimeout(window.markReadDebounce);
+            window.markReadDebounce = setTimeout(markMessagesAsRead, 300);
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ทำเครื่องหมายข้อความทั้งหมดว่าอ่านแล้วเมื่อโหลดหน้า
+            markMessagesAsRead();
+
+            // ส่ง event เข้าแชทส่วนตัว
+            socket.emit('user in private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+        });
+
+        // การจัดการเมื่อผู้ใช้ออกจากหน้า
+        window.addEventListener('beforeunload', () => {
+            socket.emit('user left private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+        });
+
+        // รับสถานะข้อความที่ถูกอ่าน
+        socket.on('private message read', (data) => {
+            const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+            if (messageElement) {
+                const readStatusElement = messageElement.querySelector('.read-status');
+                if (readStatusElement) {
+                    readStatusElement.innerHTML = `เห็นแล้ว: <span class="read-count">${data.readByCount}</span> คน`;
+
+                    // เพิ่มเอฟเฟกต์การเปลี่ยนแปลงเพื่อให้ผู้ใช้รู้ว่ามีการอัปเดต
+                    readStatusElement.style.transition = 'all 0.3s';
+                    readStatusElement.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+                    setTimeout(() => {
+                        readStatusElement.style.backgroundColor = 'transparent';
+                    }, 300);
+                }
+            }
+        });
+
+        // ในส่วนของ Socket.io ที่จัดการการอ่านข้อความ
+        // แก้ไขส่วนนี้ใน Socket.io ที่จัดการการอ่านข้อความ
+        socket.on('private message read update', (data) => {
+            console.log('Received private message read update:', data);
+
+            // อัปเดต UI สำหรับข้อความที่ถูกอ่าน
+            const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+            if (messageElement) {
+                const readStatusElement = messageElement.querySelector('.read-status');
+                if (readStatusElement) {
+                    // แสดงจำนวนคนที่อ่านทั้งหมด
+                    readStatusElement.innerHTML = `เห็นแล้ว: ${data.readBy.length} คน`;
+
+                    // เพิ่มเอฟเฟกต์การเปลี่ยนแปลง
+                    readStatusElement.style.transition = 'all 0.3s';
+                    readStatusElement.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+                    setTimeout(() => {
+                        readStatusElement.style.backgroundColor = 'transparent';
+                    }, 300);
+                }
+            }
+        });
+
+        // ฟังก์ชันสำหรับทำเครื่องหมายข้อความว่าอ่านแล้ว
+        async function markMessagesAsRead() {
+            try {
+                const spaceId = '<%= spaces._id %>';
+                const userId = '<%= user._id %>';
+                const targetUserId = '<%= targetUser._id %>';
+
+                // ส่งคำขอไปยังเซิร์ฟเวอร์เพื่อทำเครื่องหมายข้อความว่าอ่านแล้ว
+                const response = await fetch(`/space/item/${spaceId}/chat/private/${targetUserId}/mark-as-read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                if (response.ok) {
+                    console.log('Successfully marked messages as read');
+
+                    // อัปเดต UI ทันทีโดยไม่ต้องรอ response จากเซิร์ฟเวอร์
+                    document.querySelectorAll('.message.current-user .read-status').forEach(el => {
+                        const currentCount = parseInt(el.textContent.match(/\d+/)[0]) || 0;
+                        el.textContent = `เห็นแล้ว: ${currentCount} คน`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+            }
+        }
+
+        // เรียกใช้เมื่อโหลดหน้าและเมื่อผู้ใช้เลื่อนดูข้อความ
+        document.addEventListener('DOMContentLoaded', () => {
+            // ทำเครื่องหมายข้อความทั้งหมดว่าอ่านแล้วเมื่อโหลดหน้า
+            markMessagesAsRead();
+
+            // ส่ง event เข้าแชทส่วนตัว
+            socket.emit('user in private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+        });
+
+        // การจัดการเมื่อผู้ใช้ออกจากหน้า
+        window.addEventListener('beforeunload', () => {
+            socket.emit('user left private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ทำเครื่องหมายข้อความทั้งหมดว่าอ่านแล้ว
+            markMessagesAsRead();
+
+            // อัปเดตจำนวนข้อความที่ยังไม่อ่าน
+            fetchUnreadCounts();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUnreadCounts();
+
+            document.querySelectorAll('.user-list li').forEach(item => {
+                item.addEventListener('click', function () {
+                    if (!this.classList.contains('active')) {
+                        setTimeout(markMessagesAsRead, 300);
+                    }
+                });
+            });
+
+            loadPeopleData();
+        });
+
+        socket.on('new message', () => {
+            const path = window.location.pathname;
+            const spaceId = '<%= spaces._id %>';
+
+            if (!path.includes('/chat/private/') && !path.endsWith('/chat')) {
+                fetchUnreadCounts();
+            }
+
+        });
+        socket.on('update last group message', (message) => {
+            if (!window.location.pathname.endsWith('/chat')) {
+                fetchUnreadCounts();
+            }
+        });
+        socket.on('update last private message', (message) => {
+            const path = window.location.pathname;
+            const targetUserId = message.userId._id.toString() === '<%= user._id %>'
+                ? message.targetUserId._id.toString()
+                : message.userId._id.toString();
+
+            if (!path.includes(`/chat/private/${targetUserId}`)) {
+                fetchUnreadCounts();
+            }
+        });
+        // แก้ไขส่วนนี้ในไฟล์ EJS
+        socket.on('update last private message', (message) => {
+            console.log('Received update last private message:', message);
+
+            // ตรวจสอบว่ามีข้อมูลครบถ้วน
+            if (!message || !message.userId || !message.targetUserId) {
+                console.error('Invalid message format:', message);
+                return;
+            }
+
+            const currentUserId = '<%= user._id %>';
+            const otherUserId = message.userId._id.toString() === currentUserId
+                ? message.targetUserId._id.toString()
+                : message.userId._id.toString();
+
+            // อัปเดต UI
+            const lastMessageElement = document.querySelector(`li[data-user-id="${otherUserId}"] .conuser`);
+            const lastTimeElement = document.querySelector(`li[data-user-id="${otherUserId}"] .timemessage`);
+
+            if (lastMessageElement) {
+                if (message.userId._id.toString() === currentUserId) {
+                    lastMessageElement.textContent = 'คุณ: ' + (message.message || '');
+                } else {
+                    const senderName = message.userId.firstName || '';
+                    lastMessageElement.textContent = senderName + ': ' + (message.message || '');
+                }
+            }
+
+            if (lastTimeElement) {
+                lastTimeElement.textContent = formatTime(new Date(message.createdAt));
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("⏳ หน้าเว็บโหลดเสร็จแล้ว (window.onload)");
+
+            const toggleButton = document.querySelector('.headuser-list button');
+            const userList = document.querySelector('.user-list');
+            const icon = toggleButton.querySelector('i');
+
+            // โหลดค่าจาก localStorage
+            const isCollapsed = localStorage.getItem('chatMenuCollapsed') === 'true';
+            console.log("📌 ค่าจาก localStorage ที่โหลดมา:", isCollapsed);
+
+            // ตั้งค่าเริ่มต้นโดยไม่ใช้ setTimeout
+            function setInitialState() {
+                // ตั้งค่าสถานะเริ่มต้นก่อนแสดงผล
+                if (isCollapsed) {
+                    userList.classList.add('collapsed');
+                } else {
+                    userList.classList.remove('collapsed');
+                }
+
+                // แสดงเมนูหลังจากตั้งค่าสถานะแล้ว
+                requestAnimationFrame(() => {
+                    userList.classList.add('show');
+                });
+            }
+
+            setInitialState();
+
+            // ปุ่ม Toggle
+            toggleButton.addEventListener('click', () => {
+                const willBeCollapsed = !userList.classList.contains('collapsed');
+
+                userList.classList.toggle('collapsed');
+                localStorage.setItem('chatMenuCollapsed', willBeCollapsed.toString());
+                console.log("ค่าที่ถูกบันทึกลง localStorage:", localStorage.getItem('chatMenuCollapsed'));
+            });
+
+            // ตั้งค่า active ให้กับแชทปัจจุบัน
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.user-list li').forEach(item => {
+                const link = item.querySelector('a');
+                if (link && link.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // ตัวแปรเก็บข้อมูล mention
+        let mentionData = {
+            tasks: []   // เก็บข้อมูล task
+        };
+
+        // ฟังก์ชันแสดงเมนู mention
+        function showMentionMenu() {
+            const mentionList = document.getElementById('mentionList');
+            mentionList.style.display = 'block';
+
+            // โหลดข้อมูลเริ่มต้น
+            loadTaskData();
+        }
+
+        async function loadTaskData() {
+            try {
+                const spaceId = '<%= spaces._id %>';
+                const response = await fetch(`/space/${spaceId}/mention/tasks`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const mentionTaskList = document.getElementById('mentionTaskList');
+                    mentionTaskList.innerHTML = '';
+
+                    data.tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                    <i class='bx bx-task'></i>
+                    <a href="/task/${task._id}/detail" class="task-mention">${task.taskName}</a>
+                `;
+                        li.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            insertMention(task.taskName, 'task', task._id);
+                        });
+                        mentionTaskList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading task data:', error);
+            }
+        }
+
+        function insertMention(name, type, id) {
+            const messageInput = document.getElementById('messageInput');
+            const currentValue = messageInput.value;
+            const atIndex = currentValue.lastIndexOf('@');
+
+            if (atIndex !== -1) {
+                // ตัดส่วนข้อความตั้งแต่เริ่มต้นจนถึงก่อนเครื่องหมาย @
+                const beforeText = currentValue.substring(0, atIndex);
+
+                // หาตำแหน่งของช่องว่างหลัง @ ถ้ามี
+                const spaceIndex = currentValue.indexOf(' ', atIndex);
+                const afterText = spaceIndex !== -1 ? currentValue.substring(spaceIndex) : '';
+
+                // สร้างข้อความ mention ที่แสดงใน input
+                const displayText = `@${name}`;
+
+                // สร้างข้อความ mention ที่จะส่งไป (เป็น HTML)
+                const mentionHtml = type === 'task'
+                    ? `@<a href="/task/${id}/detail" class="task-mention">${name}</a>`
+                    : `@${name}`;
+
+                // เก็บข้อมูล mention ใน attribute ของ input
+                messageInput.setAttribute('data-mention', mentionHtml);
+
+                // แสดงข้อความที่สวยงามใน input
+                messageInput.value = beforeText + displayText + afterText;
+
+                // ซ่อนเมนู mention
+                document.getElementById('mentionList').style.display = 'none';
+
+                // โฟกัสกลับไปที่ input
+                messageInput.focus();
+            }
+        }
+
+        // ตรวจจับการพิมพ์ @ ใน input
+        messageInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            const atIndex = value.lastIndexOf('@');
+
+            if (atIndex !== -1 && (atIndex === 0 || value[atIndex - 1] === ' ')) {
+                showMentionMenu();
+            } else {
+                document.getElementById('mentionList').style.display = 'none';
+            }
+        });
+    </script>

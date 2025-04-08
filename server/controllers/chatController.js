@@ -3,6 +3,7 @@ const Spaces = require('../models/Space');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const Task = require('../models/Task');
 const upload = multer({ dest: 'uploads/' });
 
 const formatDate = (date) => {
@@ -28,74 +29,96 @@ const isNewDay = (date1, date2) => {
   );
 };
 
+const formatMessageContent = (message) => {
+  if (!message) return '';
+
+  // แปลงลิงก์ mention งานให้เป็นลิงก์ที่คลิกได้
+  return message.replace(/@<a href="\/task\/([^" ]+)\/detail"[^>]*>([^<]+)<\/a>/g,
+    '<a href="/task/$1/detail" class="task-mention">@$2</a>');
+};
+
 exports.uploadFiles = async (req, res) => {
   try {
     const spaceId = req.params.id;
     const userId = req.user.id;
-    const message = req.body.message;
-    const mentionedUserIds = req.body.mentionedUsers || [];
-    const files = req.files;
+    let message = req.body.message || '';
+    const mentionedUsers = JSON.parse(req.body.mentionedUsers || '[]');
 
-    if (!files || files.length === 0) {
-      return res.status(400).json({ success: false, error: "No files uploaded" });
+    message = formatMessageContent(message);
+
+    // Process mentions
+    message = message.replace(/@([^ ]+) \(user:([^)]+)\)/g,
+      '@<a href="/user/$2">$1</a>');
+    message = message.replace(/@([^ ]+) \(task:([^)]+)\)/g,
+      '@<a href="/task/$2/detail">$1</a>');
+
+    if (!message.trim() && (!req.files || req.files.length === 0)) {
+      return res.status(400).json({ error: "ต้องมีข้อความหรือไฟล์แนบอย่างน้อยหนึ่งอย่าง" });
     }
 
-    // สร้าง array ของไฟล์ข้อมูล
-    const fileData = files.map(file => ({
-      url: `/uploads/${file.filename}`,
-      originalname: file.originalname,
+    // Process file uploads
+    const fileData = req.files ? req.files.map(file => ({
+      url: `/uploads/chat_files/${file.filename}`,
+      originalname: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       mimetype: file.mimetype,
       size: file.size,
       filename: file.filename
-    }));
+    })) : [];
 
-    // สร้างข้อความใหม่พร้อมไฟล์แนบ
+    // Create new message
     const newMessage = new Chat({
       spaceId,
       userId,
-      message: message || '', // อนุญาตให้ส่งข้อความว่างได้ถ้ามีไฟล์แนบ
-      files: fileData,
-      readBy: [],
-      mentionedUsers: mentionedUserIds,
+      message: message.trim() || undefined,
+      files: fileData.length > 0 ? fileData : undefined,
+      readBy: [], // Mark as read by sender
+      mentionedUsers,
       type: 'group'
     });
 
     await newMessage.save();
 
-    // Populate ข้อมูลผู้ใช้
+    // ในส่วนของการส่งข้อความ
     const populatedMessage = await Chat.findById(newMessage._id)
       .populate('userId', 'firstName lastName profileImage')
       .populate('readBy', 'firstName lastName')
-      .populate('mentionedUsers', 'firstName lastName profileImage')
       .lean();
 
-    // ส่งข้อความผ่าน Socket.io
+    // ตรวจสอบและแปลงข้อมูลไฟล์ให้ถูกต้องก่อนส่ง
+    if (populatedMessage.files && populatedMessage.files.length > 0) {
+      populatedMessage.files = populatedMessage.files.map(file => ({
+        url: file.url,
+        originalname: file.originalname,
+        mimetype: file.mimetype
+      }));
+    }
+
     const io = req.app.get('io');
-    io.emit('chat message', populatedMessage);
+    io.to(`space_${spaceId}`).emit('new group message', populatedMessage);
     io.emit('update last group message', {
-      spaceId: populatedMessage.spaceId,
+      spaceId,
+      userId: populatedMessage.userId,
       message: populatedMessage.message,
-      createdAt: populatedMessage.createdAt,
-      userId: populatedMessage.userId ? {
-        _id: populatedMessage.userId._id.toString(),
-        firstName: populatedMessage.userId.firstName,
-        lastName: populatedMessage.userId.lastName
-      } : null,
-      files: populatedMessage.files // เพิ่มข้อมูลไฟล์แนบ
+      files: populatedMessage.files, // ตรวจสอบว่าส่งข้อมูลไฟล์แนบไปด้วย
+      createdAt: populatedMessage.createdAt
     });
 
-    res.status(200).json({ 
-      success: true, 
-      message: populatedMessage 
-    });
+    // Notify mentioned users
+    if (mentionedUsers.length > 0) {
+      mentionedUsers.forEach(userId => {
+        io.to(`user_${userId}`).emit('new mention', {
+          mentionedBy: `${req.user.firstName} ${req.user.lastName}`,
+          projectName: 'Project Name',
+          message: message,
+          link: `/space/item/${spaceId}/chat`
+        });
+      });
+    }
 
+    res.status(200).json({ success: true, message: populatedMessage });
   } catch (error) {
     console.error("Error uploading files:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Internal Server Error",
-      message: error.message 
-    });
+    res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };
 
@@ -103,57 +126,64 @@ exports.uploadFiles = async (req, res) => {
 exports.renderChatPage = async (req, res) => {
   try {
     const spaceId = req.params.id;
-    const space = await Spaces.findById(spaceId).populate('collaborators.user', 'firstName lastName profileImage').lean();
+
+    // Get space, messages, and tasks in parallel
+    const [space, messages, tasks] = await Promise.all([
+      Spaces.findById(spaceId).populate('collaborators.user', 'firstName lastName profileImage').lean(),
+      Chat.find({ spaceId, type: 'group' })
+        .populate('userId', 'firstName lastName profileImage')
+        .populate('readBy', 'firstName lastName')
+        .sort({ createdAt: 'asc' })
+        .lean(),
+      Task.find({ project: spaceId }).select('_id taskName').lean()
+    ]);
 
     if (!space) {
       return res.status(404).send("Space not found");
     }
 
-    // ดึงข้อความล่าสุดสำหรับแต่ละผู้ใช้
-    const collaboratorsWithLastMessage = await Promise.all(space.collaborators.map(async (collab) => {
-      if (collab.user && collab.user._id.toString() !== req.user._id.toString()) {
-        const lastMessage = await Chat.findOne({
-          $or: [
-            { userId: collab.user._id, targetUserId: req.user._id },
-            { userId: req.user._id, targetUserId: collab.user._id }
-          ],
-          type: 'private'
-        })
-          .populate('userId', 'firstName lastName') // เพิ่ม populate userId
-          .sort({ createdAt: -1 })
-          .lean();
-
-        return {
-          ...collab,
-          lastMessage: lastMessage ? lastMessage.message : null,
-          lastMessageTime: lastMessage ? lastMessage.createdAt : null,
-          lastMessageSender: lastMessage ? lastMessage.userId : null // เพิ่มข้อมูลผู้ส่ง
-        };
-      }
-      return collab;
-    }));
-
-    // ดึงข้อความล่าสุดของแชทกลุ่ม
+    // Get last group message
     const lastGroupMessage = await Chat.findOne({ spaceId, type: 'group' })
-      .populate('userId', 'firstName lastName') // เพิ่มบรรทัดนี้
+      .populate('userId', 'firstName lastName')
       .sort({ createdAt: -1 })
       .lean();
 
-    // ดึงข้อความทั้งหมดของแชทกลุ่ม
-    const messages = await Chat.find({ spaceId, type: 'group' })
-      .populate('userId', 'firstName lastName profileImage')
-      .populate('readBy', 'firstName lastName')
-      .sort({ createdAt: 'asc' })
-      .lean();
+    // Process collaborators with their last messages
+    const collaboratorsWithLastMessage = await Promise.all(
+      space.collaborators.map(async (collab) => {
+        if (collab.user && collab.user._id.toString() !== req.user._id.toString()) {
+          const lastMessage = await Chat.findOne({
+            $or: [
+              { userId: collab.user._id, targetUserId: req.user._id },
+              { userId: req.user._id, targetUserId: collab.user._id }
+            ],
+            type: 'private'
+          })
+            .populate('userId', 'firstName lastName')
+            .sort({ createdAt: -1 })
+            .lean();
+
+          return {
+            ...collab,
+            lastMessage: lastMessage ? lastMessage.message : null,
+            lastMessageTime: lastMessage ? lastMessage.createdAt : null,
+            lastMessageSender: lastMessage ? lastMessage.userId : null
+          };
+        }
+        return collab;
+      })
+    );
 
     res.render('task/task-chat', {
       spaces: { ...space, collaborators: collaboratorsWithLastMessage },
       messages,
       lastGroupMessage,
+      tasks,
       user: req.user,
       layout: '../views/layouts/task',
       currentPage: 'task_chat',
-      currentChatUserId: null, // ไม่มีผู้ใช้สำหรับแชทกลุ่ม
+      currentChatUserId: null,
+      formatMessageContent,
       formatDate,
       formatTime,
       isNewDay,
@@ -169,34 +199,24 @@ exports.renderChatPage = async (req, res) => {
 exports.postMessage = async (req, res) => {
   try {
     const spaceId = req.params.id;
-    const message = req.body.message;
+    let message = req.body.message;
     const mentionedUserIds = req.body.mentionedUsers || [];
     const userId = req.user.id;
-    const type = req.body.type || 'group'; // กำหนดประเภทข้อความ
+    const type = req.body.type || 'group';
+
+    message = formatMessageContent(message);
 
     if (!message || !userId || !spaceId) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
 
-    const space = await Spaces.findById(spaceId);
-    if (!space) {
-      return res.status(404).json({ success: false, error: "Space not found" });
-    }
-
-    const usersInChat = req.app.get('usersInChat');
-
-    const usersInSpaceChat = usersInChat.get(spaceId) || new Set();
-
-    // ตรวจสอบว่าไม่เพิ่มผู้ส่งข้อความลงใน readBy
-    const readBy = Array.from(usersInSpaceChat).filter(id => id.toString() !== userId.toString());
-
     const newMessage = new Chat({
       spaceId,
       userId,
-      message,
-      readBy: readBy,
+      message: message.trim(),
+      readBy: [userId],
       mentionedUsers: mentionedUserIds,
-      type: type // กำหนดประเภทข้อความ
+      type
     });
 
     await newMessage.save();
@@ -204,65 +224,25 @@ exports.postMessage = async (req, res) => {
     const populatedMessage = await Chat.findById(newMessage._id)
       .populate('userId', 'firstName lastName profileImage')
       .populate('readBy', 'firstName lastName')
-      .populate('mentionedUsers', 'firstName lastName profileImage')
       .lean();
 
     const io = req.app.get('io');
-    if (type === 'group') {
-      io.emit('update last group message', {
-        spaceId: populatedMessage.spaceId,
-        message: populatedMessage.message,
-        createdAt: populatedMessage.createdAt,
-        userId: populatedMessage.userId ? {
-          _id: populatedMessage.userId._id.toString(),
-          firstName: populatedMessage.userId.firstName,
-          lastName: populatedMessage.userId.lastName
-        } : null
-      });
-    } else if (type === 'private') {
-      io.emit('update last private message', {
-        message: populatedMessage.message,
-        createdAt: populatedMessage.createdAt,
-        userId: { _id: populatedMessage.userId._id.toString() },
-        targetUserId: { _id: populatedMessage.targetUserId._id.toString() }
-      });
-    }
-
 
     if (type === 'group') {
-      io.emit('chat message', populatedMessage);
+      io.to(`space_${spaceId}`).emit('new group message', populatedMessage);
       io.emit('update last group message', {
-        spaceId: populatedMessage.spaceId,
+        spaceId,
+        userId: populatedMessage.userId,
         message: populatedMessage.message,
-        createdAt: populatedMessage.createdAt,
-        userId: populatedMessage.userId ? {
-          _id: populatedMessage.userId._id.toString(),
-          firstName: populatedMessage.userId.firstName,
-          lastName: populatedMessage.userId.lastName
-        } : null
-      });
-    } else if (type === 'private') {
-      io.to(`private_${userId}_${populatedMessage.targetUserId}`).emit('private message', populatedMessage);
-      io.to(`private_${populatedMessage.targetUserId}_${userId}`).emit('private message', populatedMessage);
-
-      io.emit('update last private message', {
-        userId: { _id: populatedMessage.userId._id.toString() },
-        targetUserId: { _id: populatedMessage.targetUserId._id.toString() },
-        message: populatedMessage.message,
+        files: populatedMessage.files, // ตรวจสอบว่าส่งข้อมูลไฟล์แนบไปด้วย
         createdAt: populatedMessage.createdAt
       });
-    }
 
-    // แจ้งเตือนผู้ใช้ที่ถูก mention
-    if (populatedMessage.mentionedUsers.length > 0) {
-      populatedMessage.mentionedUsers.forEach(user => {
-        io.to(user._id).emit('new mention', {
-          spaceId,
-          projectName: space.projectName,
-          message: populatedMessage.message,
-          mentionedBy: req.user.firstName + ' ' + req.user.lastName,
-          link: `/space/item/${spaceId}/chat`
-        });
+      // อัปเดตจำนวนข้อความที่ยังไม่ได้อ่าน
+      io.emit('update unread count', {
+        spaceId,
+        senderId: userId,
+        type: 'group'
       });
     }
 
@@ -344,7 +324,7 @@ exports.markAsRead = async (req, res) => {
     const usersInSpaceChat = req.app.get('usersInChat').get(spaceId) || new Set();
 
     if (usersInSpaceChat.has(userId)) {
-      // ตรวจสอบว่าผู้ใช้ไม่ใช่ผู้ส่งข้อความ
+      // ตรวจสอบว่าผู้ใช้ไม่ใช่ผู้ส่งข้อความ และยังไม่ได้อ่านข้อความนี้
       if (chat.userId.toString() !== userId.toString() && !chat.readBy.includes(userId)) {
         chat.readBy.push(userId);
         await chat.save();
@@ -352,9 +332,18 @@ exports.markAsRead = async (req, res) => {
         // แจ้ง client ว่าข้อความถูกอ่าน
         req.app.get('io').emit('message read update', {
           messageId: chat._id.toString(),
-          readByCount: chat.readBy.length,
+          readByCount: chat.readBy.filter(id => id.toString() !== chat.userId.toString()).length,
         });
       }
+      await Chat.updateMany(
+        {
+          spaceId,
+          type: 'group',
+          readBy: { $ne: userId },
+          userId: { $ne: userId } // ไม่นับข้อความที่ผู้ใช้ส่งเอง
+        },
+        { $push: { readBy: userId } }
+      );
     }
 
     res.status(200).json({ success: true });
@@ -363,39 +352,90 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
-// ค้นหาผู้ใช้ตามชื่อ
-exports.searchUsers = async (req, res) => {
+// ใน chatController.js
+exports.getMentionPeople = async (req, res) => {
   try {
-    const { spaceId } = req.params;
-    const { query } = req.query;
+    const spaceId = req.params.spaceId;
+    const space = await Spaces.findById(spaceId)
+      .populate('collaborators.user', 'firstName lastName profileImage')
+      .lean();
 
-    // ค้นหา space และ populate collaborators.user
-    const space = await Spaces.findById(spaceId).populate('collaborators.user', 'firstName lastName profileImage');
     if (!space) {
       return res.status(404).json({ success: false, error: "Space not found" });
     }
 
-    // ดึงข้อมูลผู้ใช้จาก collaborators และกรอง user ที่ไม่ใช่ null และไม่ใช่ตัวเอง
-    let users = space.collaborators
-      .map(collab => collab.user)
-      .filter(user => user !== null && user._id.toString() !== req.user._id.toString()); // ตรวจสอบว่า user ไม่ใช่ null และไม่ใช่ตัวเอง
+    // กรองเฉพาะ collaborators ที่ไม่ใช่ผู้ใช้ปัจจุบัน
+    const people = space.collaborators
+      .filter(collab => collab.user && collab.user._id.toString() !== req.user._id.toString())
+      .map(collab => collab.user);
 
-    // ถ้ามี query ให้กรองผู้ใช้ตาม query
-    if (query) {
-      users = users.filter(user =>
-        user.firstName.toLowerCase().includes(query.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(query.toLowerCase())
-      );
+    res.json({ success: true, people });
+  } catch (error) {
+    console.error('Error getting mention people:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+// ค้นหาผู้ใช้ตามชื่อ
+exports.searchUsers = async (req, res) => {
+  try {
+    const { spaceId } = req.params;
+    const space = await Spaces.findById(spaceId)
+      .populate('collaborators.user', 'firstName lastName profileImage')
+      .lean();
+
+    if (!space) {
+      return res.status(404).json({ success: false, error: "Space not found" });
     }
 
-    res.json({ success: true, users });
+    // ดึงข้อมูลผู้ใช้ทั้งหมดจาก collaborators
+    const users = space.collaborators
+      .map(collab => collab.user)
+      .filter(user => user && user._id.toString() !== req.user._id.toString());
+
+    res.json({
+      success: true,
+      users: users.map(user => ({
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImage: user.profileImage
+      }))
+    });
   } catch (error) {
     console.error('Error searching users:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
-// ใน chatController.js
+exports.getMentionTasks = async (req, res) => {
+  try {
+    const spaceId = req.params.spaceId;
+    const tasks = await Task.find({ project: spaceId })
+      .select('_id taskName')
+      .lean();
+
+    res.json({ success: true, tasks });
+  } catch (error) {
+    console.error('Error getting mention tasks:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+exports.getTasksForMention = async (req, res) => {
+  try {
+    const spaceId = req.params.spaceId;
+    const tasks = await Task.find({ project: spaceId })
+      .select('_id taskName')
+      .lean();
+
+    res.json({ success: true, tasks });
+  } catch (error) {
+    console.error('Error getting tasks for mention:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
 exports.markAllAsRead = async (req, res) => {
   const { spaceId } = req.params;
   const { userId } = req.body;
@@ -420,11 +460,11 @@ exports.markGroupMessagesAsRead = async (req, res) => {
     const { userId } = req.body;
 
     await Chat.updateMany(
-      { 
-        spaceId, 
+      {
+        spaceId,
         type: 'group',
         readBy: { $ne: userId },
-        userId: { $ne: userId }
+        userId: { $ne: userId } // ไม่นับข้อความที่ผู้ใช้ส่งเอง
       },
       { $push: { readBy: userId } }
     );
@@ -443,7 +483,7 @@ exports.renderPrivateChatPage = async (req, res) => {
     const targetUserId = req.params.targetUserId;
     const userId = req.user.id;
 
-    // ดึงข้อมูล space และ populate collaborators พร้อมข้อมูล lastMessage
+    // ดึงข้อมูล space และ populate collaborators
     const space = await Spaces.findById(spaceId)
       .populate({
         path: 'collaborators.user',
@@ -451,13 +491,16 @@ exports.renderPrivateChatPage = async (req, res) => {
       })
       .lean();
 
-    const targetUser = await User.findById(targetUserId).lean();
+    // ดึงข้อมูล targetUser และแน่ใจว่าได้ profileImage
+    const targetUser = await User.findById(targetUserId)
+      .select('firstName lastName profileImage')
+      .lean();
 
     if (!space || !targetUser) {
       return res.status(404).send("ไม่พบ Space หรือผู้ใช้เป้าหมาย");
     }
 
-    // ดึงข้อมูล lastMessage สำหรับแต่ละ collaborator
+    // ดึงข้อมูล lastMessage สำหรับแต่ละ collaborator (รวมข้อมูลไฟล์แนบ)
     const collaboratorsWithLastMessage = await Promise.all(
       space.collaborators.map(async (collab) => {
         if (collab.user && collab.user._id.toString() !== userId.toString()) {
@@ -468,22 +511,23 @@ exports.renderPrivateChatPage = async (req, res) => {
             ],
             type: 'private'
           })
-          .populate('userId', 'firstName lastName') // เพิ่ม populate userId
-          .sort({ createdAt: -1 })
-          .lean();
-    
+            .populate('userId', 'firstName lastName')
+            .sort({ createdAt: -1 })
+            .lean();
+
           return {
             ...collab,
-            lastMessage: lastMessage ? lastMessage.message : null,
+            lastMessage: lastMessage ? (lastMessage.files && lastMessage.files.length > 0 ? 'แนบไฟล์' : lastMessage.message) : null,
             lastMessageTime: lastMessage ? lastMessage.createdAt : null,
-            lastMessageSender: lastMessage ? lastMessage.userId : null // เพิ่มข้อมูลผู้ส่ง
-          }; 
+            lastMessageSender: lastMessage ? lastMessage.userId : null,
+            lastMessageFiles: lastMessage ? lastMessage.files : null // เพิ่มข้อมูลไฟล์แนบ
+          };
         }
         return collab;
       })
     );
 
-    // ดึงข้อความส่วนตัวระหว่างผู้ใช้
+    // ดึงข้อความส่วนตัวระหว่างผู้ใช้ (รวมข้อมูลไฟล์แนบ)
     const messages = await Chat.find({
       spaceId,
       $or: [
@@ -492,14 +536,15 @@ exports.renderPrivateChatPage = async (req, res) => {
       ],
       type: 'private',
     })
-      .populate('userId', 'firstName lastName profileImage')
-      .populate('targetUserId', 'firstName lastName profileImage')
-      .sort({ createdAt: 'asc' })
-      .lean();
+    .populate('userId', 'firstName lastName profileImage')
+    .populate('targetUserId', 'firstName lastName profileImage')
+    .populate('readBy', '_id') // ต้อง populate readBy ด้วย
+    .sort({ createdAt: 'asc' })
+    .lean();
 
-    // ดึงข้อความล่าสุดของแชทกลุ่ม
+    // ดึงข้อความล่าสุดของแชทกลุ่ม (รวมข้อมูลไฟล์แนบ)
     const lastGroupMessage = await Chat.findOne({ spaceId, type: 'group' })
-      .populate('userId', 'firstName lastName') // เพิ่มบรรทัดนี้
+      .populate('userId', 'firstName lastName')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -511,7 +556,8 @@ exports.renderPrivateChatPage = async (req, res) => {
       lastGroupMessage,
       layout: '../views/layouts/task',
       currentPage: 'task_chat_private',
-      currentChatUserId: targetUserId, // ระบุผู้ใช้ที่กำลังแชทด้วย
+      currentChatUserId: targetUserId,
+      formatMessageContent,
       formatDate,
       formatTime,
       isNewDay,
@@ -522,38 +568,63 @@ exports.renderPrivateChatPage = async (req, res) => {
   }
 };
 
-// ส่งข้อความส่วนตัว
-exports.sendPrivateMessage = async (req, res) => {
+exports.uploadPrivateFiles = async (req, res) => {
   try {
     const spaceId = req.params.id;
     const targetUserId = req.params.targetUserId;
     const userId = req.user.id;
-    const { message } = req.body;
+    let message = req.body.message || '';
+    const mentionedUsers = JSON.parse(req.body.mentionedUsers || '[]');
 
-    if (!message || !userId || !spaceId || !targetUserId) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+    message = formatMessageContent(message);
+
+    // Process mentions
+    message = message.replace(/@([^ ]+) \(user:([^)]+)\)/g,
+      '@<a href="/user/$2">$1</a>');
+    message = message.replace(/@([^ ]+) \(task:([^)]+)\)/g,
+      '@<a href="/task/$2/detail">$1</a>');
+
+    // ตรวจสอบว่ามีข้อความหรือไฟล์แนบอย่างน้อยหนึ่งอย่าง
+    if (!message.trim() && (!req.files || req.files.length === 0)) {
+      return res.status(400).json({ error: "ต้องมีข้อความหรือไฟล์แนบอย่างน้อยหนึ่งอย่าง" });
     }
 
+    // เตรียมข้อมูลไฟล์
+    const fileData = req.files ? req.files.map(file => ({
+      url: `/uploads/chat_files/${file.filename}`,
+      originalname: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+      mimetype: file.mimetype,
+      size: file.size,
+      filename: file.filename
+    })) : [];
+
+    // สร้างข้อความใหม่
     const newMessage = new Chat({
       spaceId,
       userId,
       targetUserId,
-      message,
-      type: 'private',
-      readBy: [], // เริ่มต้นด้วยค่าว่าง
+      message: message.trim() || undefined,
+      files: fileData.length > 0 ? fileData : undefined,
+      readBy: [],
+      mentionedUsers,
+      type: 'private'
     });
 
     await newMessage.save();
+
+    // ดึงข้อมูลข้อความพร้อม populate
     const populatedMessage = await Chat.findById(newMessage._id)
       .populate('userId', 'firstName lastName profileImage')
       .populate('targetUserId', 'firstName lastName profileImage')
+      .populate('readBy', 'firstName lastName')
       .lean();
 
-    if (!populatedMessage.userId || !populatedMessage.targetUserId) {
-      console.error('ข้อมูลผู้ใช้ไม่ครบถ้วน:', populatedMessage);
-      return res.status(400).json({ success: false, error: "Missing user data" });
-    }
+    // ส่งข้อความผ่าน Socket.io
+    const io = req.app.get('io');
+    io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
+    io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
 
+    // อัปเดตข้อความล่าสุด (รวมข้อมูลไฟล์แนบ)
     io.emit('update last private message', {
       userId: populatedMessage.userId ? {
         _id: populatedMessage.userId._id.toString(),
@@ -565,36 +636,87 @@ exports.sendPrivateMessage = async (req, res) => {
         firstName: populatedMessage.targetUserId.firstName,
         lastName: populatedMessage.targetUserId.lastName
       } : null,
-      message: populatedMessage.message,
+      message: populatedMessage.files && populatedMessage.files.length > 0 ? 'แนบไฟล์' : populatedMessage.message,
+      files: populatedMessage.files,
       createdAt: populatedMessage.createdAt
     });
 
+    res.status(200).json({ success: true, message: populatedMessage });
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ส่วนตัว:", error);
+    res.status(500).json({ error: error.message || "ข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+  }
+};
 
+// ส่งข้อความส่วนตัว
+exports.sendPrivateMessage = async (req, res) => {
+  try {
+    const spaceId = req.params.id;
+    const targetUserId = req.params.targetUserId;
+    const userId = req.user.id;
+    let message = req.body.message;
+    const mentionedUserIds = req.body.mentionedUsers || [];
+    const files = req.body.files || []; // เพิ่มการรองรับไฟล์แนบ
 
+    if (!message && (!files || files.length === 0)) {
+      return res.status(400).json({ success: false, error: "ต้องมีข้อความหรือไฟล์แนบอย่างน้อยหนึ่งอย่าง" });
+    }
+
+    message = formatMessageContent(message);
+
+    // Process mentions
+    message = message.replace(/@([^ ]+) \(user:([^)]+)\)/g,
+      '@<a href="/user/$2">$1</a>');
+    message = message.replace(/@([^ ]+) \(task:([^)]+)\)/g,
+      '@<a href="/task/$2/detail">$1</a>');
+
+    const newMessage = new Chat({
+      spaceId,
+      userId,
+      targetUserId,
+      message: message ? message.trim() : undefined,
+      files: files.length > 0 ? files : undefined,
+      type: 'private',
+      readBy: [],
+      mentionedUsers: mentionedUserIds
+    });
+
+    await newMessage.save();
+
+    const populatedMessage = await Chat.findById(newMessage._id)
+      .populate('userId', 'firstName lastName profileImage')
+      .populate('targetUserId', 'firstName lastName profileImage')
+      .lean();
+
+    // ส่งผ่าน Socket.io
     const io = req.app.get('io');
     io.to(`private_${userId}_${targetUserId}`).emit('private message', populatedMessage);
     io.to(`private_${targetUserId}_${userId}`).emit('private message', populatedMessage);
 
-    // ตรวจสอบว่า targetUserId อยู่ในหน้าแชทหรือไม่
-    const usersInChat = req.app.get('usersInChat');
-    if (usersInChat.has(targetUserId) && usersInChat.get(targetUserId).has(userId)) {
-      // ถ้า targetUserId อยู่ในหน้าแชท ให้อัปเดต readBy
-      if (userId !== targetUserId) { // ตรวจสอบไม่ให้ผู้ส่งตัวเองเพิ่มเข้าไปใน readBy
-        newMessage.readBy.push(targetUserId);
-        await newMessage.save();
+    // ส่งอีเวนต์อัปเดตจำนวนข้อความที่ยังไม่อ่าน (รวมข้อมูลไฟล์แนบ)
+    io.emit('update unread count', {
+      spaceId,
+      senderId: userId,
+      targetUserId,
+      message: populatedMessage.files && populatedMessage.files.length > 0 ? 'แนบไฟล์' : populatedMessage.message,
+      files: populatedMessage.files
+    });
 
-        io.to(`private_${userId}_${targetUserId}`).emit('private message read', {
-          messageId: newMessage._id.toString(),
-          readByCount: newMessage.readBy.length,
+    // Notify mentioned users
+    if (mentionedUserIds.length > 0) {
+      mentionedUserIds.forEach(mentionedUserId => {
+        io.to(`user_${mentionedUserId}`).emit('new mention', {
+          mentionedBy: `${req.user.firstName} ${req.user.lastName}`,
+          projectName: 'Project Name',
+          message: populatedMessage.files && populatedMessage.files.length > 0 ? 'แนบไฟล์' : populatedMessage.message,
+          link: `/space/item/${spaceId}/chat/private/${userId}`
         });
-      }
+      });
     }
-
-
 
     res.status(200).json({ success: true, message: populatedMessage });
   } catch (error) {
-    console.log("Error sending private message:", error);
+    console.error("Error sending private message:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
@@ -604,23 +726,44 @@ exports.markPrivateMessageAsRead = async (req, res) => {
   try {
     const { messageId } = req.params;
     const userId = req.user.id;
+    const targetUserId = req.params.targetUserId;
 
-    const message = await Chat.findById(messageId);
+    const message = await Chat.findById(messageId)
+      .populate('readBy', '_id')
+      .populate('userId', '_id');
+
     if (!message) {
       return res.status(404).json({ success: false, error: "Message not found" });
     }
 
-    const usersInChat = req.app.get('usersInChat');
-    if (usersInChat.has(userId) && usersInChat.get(userId).has(message.targetUserId.toString())) {
-      if (!message.readBy.includes(userId)) {
-        message.readBy.push(userId);
-        await message.save();
-      }
-    }
+    // ตรวจสอบว่ายังไม่ได้อ่านและไม่ใช่ผู้ส่ง
+    if (!message.readBy.some(readUser => 
+      readUser._id.equals(userId)) && 
+      !message.userId._id.equals(userId)
+    ) {
+      await Chat.findByIdAndUpdate(messageId, {
+        $addToSet: { readBy: userId }
+      });
 
-    if (!message.readBy.includes(userId) && message.userId.toString() !== userId) {
-      message.readBy.push(userId);
-      await message.save();
+      // ดึงข้อมูลใหม่หลังจากอัพเดต
+      const updatedMessage = await Chat.findById(messageId)
+        .populate('readBy', '_id')
+        .lean();
+
+      // นับเฉพาะผู้อ่านที่ไม่ใช่ผู้ส่ง
+      const readCount = updatedMessage.readBy.filter(readUser => 
+        readUser._id && !readUser._id.equals(updatedMessage.userId._id)
+      ).length;
+
+      // ส่งอัพเดตผ่าน Socket.io
+      const io = req.app.get('io');
+      io.to(`private_${userId}_${targetUserId}`)
+        .to(`private_${targetUserId}_${userId}`)
+        .emit('private message read update', {
+          messageId: message._id.toString(),
+          readBy: updatedMessage.readBy.map(r => r._id.toString()),
+          readByCount: readCount
+        });
     }
 
     res.status(200).json({ success: true });
@@ -680,23 +823,56 @@ exports.markPrivateMessagesAsRead = async (req, res) => {
     const { spaceId, targetUserId } = req.params;
     const { userId } = req.body;
 
-    await Chat.updateMany(
+    // อัปเดตข้อความทั้งหมดที่ยังไม่ได้อ่าน
+    const result = await Chat.updateMany(
       {
         spaceId,
-        $or: [
-          { userId: targetUserId, targetUserId: userId },
-          { userId: userId, targetUserId: targetUserId }
-        ],
-        type: 'private',
+        userId: targetUserId,
+        targetUserId: userId,
         readBy: { $ne: userId },
-        userId: { $ne: userId }
+        type: 'private'
       },
-      { $push: { readBy: userId } }
+      { $addToSet: { readBy: userId } }
     );
 
-    res.status(200).json({ success: true });
+    // ดึงข้อความที่ถูกอัปเดต
+    const updatedMessages = await Chat.find({
+      spaceId,
+      userId: targetUserId,
+      targetUserId: userId,
+      type: 'private'
+    })
+    .populate('readBy', '_id')
+    .populate('userId', '_id');
+
+    // ส่งอัพเดตไปยังผู้ใช้ทั้งสองฝ่าย
+    const io = req.app.get('io');
+    updatedMessages.forEach(message => {
+
+      const readCount = message.readBy.filter(readUser => 
+        readUser._id && !readUser._id.equals(message.userId._id)
+      ).length;
+      
+      io.to(`private_${targetUserId}_${userId}`).emit('private message read update', {
+        messageId: message._id.toString(),
+        readByCount: readCount
+      });
+      
+      io.to(`private_${userId}_${targetUserId}`).emit('private message read update', {
+        messageId: message._id.toString(),
+        readByCount: readCount
+      });
+    });
+
+    res.status(200).json({ 
+      success: true,
+      updatedCount: result.modifiedCount
+    });
   } catch (error) {
     console.error('Error marking private messages as read:', error);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal Server Error' 
+    });
   }
 };
