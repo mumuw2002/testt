@@ -804,6 +804,34 @@
             color: #3b82f6;
             font-size: 20px;
         }
+
+        .online-member {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.online {
+            background-color: #10B981;
+        }
+
+        .status-indicator.offline {
+            background-color: #9CA3AF;
+        }
+
+        .status-text {
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -965,7 +993,13 @@
                     <div class="chatprivetename">
                         <span id="privetename">แชทส่วนตัวกับ <%= targetUser.firstName %>
                                 <%= targetUser.lastName %></span>
-                        <div class="online-member"></div>
+                        <div class="online-member">
+                            <% if (targetUser.isOnline) { %>
+                                <span class="online-status online">ออนไลน์</span>
+                                <% } else { %>
+                                    <span class="online-status offline">ออฟไลน์</span>
+                                    <% } %>
+                        </div>
                     </div>
                 </div>
                 <div class="chat-con" id="chat-sec1">
@@ -982,7 +1016,8 @@
                                         <% } %>
                                             <% previousDate=messageDate; %>
                                                 <div class="message <%= msg.userId._id.toString() === user._id.toString() ? 'current-user' : 'other-user' %>"
-                                                    data-message-id="<%= msg._id %>">
+                                                    data-message-id="<%= msg._id %>"
+                                                    data-timestamp="<%= msg.createdAt %>">
                                                     <% if (msg.userId._id.toString() !==user._id.toString()) { %>
                                                         <img src="<%= msg.userId.profileImage || '/path/to/default/avatar.png' %>"
                                                             alt="User" class="avatar">
@@ -1039,9 +1074,12 @@
                                                                                             { %>
                                                                                             <span
                                                                                                 class="read-status">เห็นแล้ว:
-                                                                                                <%
-                                                                                                    const
-                                                                                                    readCount=msg.readBy.length;
+                                                                                                <% const
+                                                                                                    readers=msg.readBy.filter(r=>
+                                                                                                    r._id.toString() !==
+                                                                                                    msg.userId._id.toString());
+                                                                                                    const readCount =
+                                                                                                    readers.length;
                                                                                                     %>
                                                                                                     <%= readCount %> คน
                                                                                             </span>
@@ -1570,9 +1608,7 @@
         let lastScrollPosition = localStorage.getItem('lastScrollPosition_' + '<%= spaces._id %>_<%= targetUser._id %>') || messagesContainer.scrollHeight;
 
         messagesContainer.scrollTop = lastScrollPosition;
-
         messagesContainer.addEventListener("scroll", checkScrollPosition);
-
         function checkScrollPosition() {
             const nearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
             if (!nearBottom) {
@@ -1957,8 +1993,14 @@
             }
         });
 
-        // ในส่วนของ Socket.io ที่จัดการการอ่านข้อความ
-        // แก้ไขส่วนนี้ใน Socket.io ที่จัดการการอ่านข้อความ
+
+        socket.on('private message read update', (data) => {
+            const readStatusElement = document.querySelector(`[data-message-id="${data.messageId}"] .read-status`);
+            if (readStatusElement) {
+                readStatusElement.innerHTML = `เห็นแล้ว: ${data.readBy.length} คน`;
+            }
+        });
+
         socket.on('private message read update', (data) => {
             console.log('Received private message read update:', data);
 
@@ -2009,6 +2051,77 @@
                 console.error('Error marking messages as read:', error);
             }
         }
+
+        async function markMessagesAsRead() {
+            const messages = document.querySelectorAll('.message[data-message-id]');
+
+            messages.forEach(msgElement => {
+                const messageId = msgElement.dataset.messageId;
+                if (!messageId) return;
+
+                socket.emit('mark private message as read', {
+                    messageId, // <-- ต้องส่ง ID ข้อความที่ชัดเจน
+                    userId: '<%= user._id %>',
+                    targetUserId: '<%= targetUser._id %>',
+                    spaceId: '<%= spaces._id %>'
+                });
+            });
+        }
+
+
+
+        // เรียกเมื่อโหลดหน้าแชท
+        // แก้ไขการเรียกใช้ markMessagesAsRead
+        document.addEventListener('DOMContentLoaded', () => {
+            // เข้าร่วมแชท
+            socket.emit('join private chat', {
+                userId: '<%= user._id %>',
+                targetUserId: '<%= targetUser._id %>'
+            });
+
+            // ทำเครื่องหมายว่าอ่านแล้วสำหรับทุกข้อความ
+            const markAllAsRead = () => {
+                document.querySelectorAll('.message[data-message-id]').forEach(msg => {
+                    const messageId = msg.dataset.messageId;
+                    if (messageId) {
+                        socket.emit('mark private message as read', {
+                            messageId,
+                            userId: '<%= user._id %>',
+                            targetUserId: '<%= targetUser._id %>'
+                        });
+                    }
+                });
+            };
+
+            // เรียกครั้งแรกเมื่อโหลดหน้า
+            markAllAsRead();
+
+            // และเรียกเมื่อได้รับข้อความใหม่
+            socket.on('private message', (msg) => {
+                if (msg.userId._id !== '<%= user._id %>') {
+                    socket.emit('mark private message as read', {
+                        messageId: msg._id,
+                        userId: '<%= user._id %>',
+                        targetUserId: '<%= targetUser._id %>'
+                    });
+                }
+            });
+        });
+
+        // อัปเดต UI
+        socket.on('private message read update', (data) => {
+            const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+            if (messageElement) {
+                const readers = data.readBy.filter(r => r._id.toString() !== '<%= user._id %>');
+                const readCount = readers.length;
+
+                const readStatusElement = messageElement.querySelector('.read-status');
+                if (readStatusElement) {
+                    readStatusElement.textContent = `เห็นแล้ว: ${readCount} คน`;
+                }
+            }
+        });
+
 
         // เรียกใช้เมื่อโหลดหน้าและเมื่อผู้ใช้เลื่อนดูข้อความ
         document.addEventListener('DOMContentLoaded', () => {
@@ -2248,5 +2361,39 @@
             } else {
                 document.getElementById('mentionList').style.display = 'none';
             }
+        });
+    </script>
+
+    <script>
+        // ตรวจสอบสถานะออนไลน์เมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOnlineStatus('<%= targetUser._id %>', <%= targetUser.isOnline %>);
+
+            // ส่งคำขอตรวจสอบสถานะออนไลน์
+            socket.emit('check user online status', { userId: '<%= targetUser._id %>' });
+        });
+
+        // ฟังก์ชันอัปเดตสถานะออนไลน์
+        function updateOnlineStatus(userId, isOnline) {
+            if (userId === '<%= targetUser._id %>') {
+                const statusIndicator = document.querySelector('.online-member .status-indicator');
+                const statusText = document.querySelector('.online-member .status-text');
+
+                if (statusIndicator && statusText) {
+                    statusIndicator.classList.toggle('online', isOnline);
+                    statusIndicator.classList.toggle('offline', !isOnline);
+                    statusText.textContent = isOnline ? 'ออนไลน์' : 'ออฟไลน์';
+                }
+            }
+        }
+
+        // รับการอัปเดตสถานะออนไลน์จากเซิร์ฟเวอร์
+        socket.on('user online status', (data) => {
+            updateOnlineStatus(data.userId, data.isOnline);
+        });
+
+        // อัปเดตสถานะเมื่อผู้ใช้เปลี่ยนสถานะ
+        socket.on('user status changed', (data) => {
+            updateOnlineStatus(data.userId, data.isOnline);
         });
     </script>

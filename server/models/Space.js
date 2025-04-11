@@ -32,7 +32,7 @@ const spaceSchema = new Schema({
     },
     projectCover: {
         type: String,
-        default: "/public/spacePictures/defultBackground.jpg"
+        default: "public/spacePictures/defultBackground.jpg"
     },
 }, {
     timestamps: true 

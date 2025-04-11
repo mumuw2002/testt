@@ -5,5 +5,6 @@ const { uploadCover } = require('../../middleware/upload-projectsetting'); // à¸
 const { isLoggedIn } = require('../../middleware/checkAuth');
 
 router.post('/space/item/:id/setting', isLoggedIn, uploadCover.single('projectCover'), taskSettingController.updateProjectSetting);
+router.delete('/space/item/:id/delete', isLoggedIn, taskSettingController.deleteSpace);
 
 module.exports = router;

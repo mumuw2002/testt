@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const Task = require('../models/Task');
 const upload = multer({ dest: 'uploads/' });
+const { resizeImage, convertToWebp } = require('../utils/imageHelpers');
 
 const formatDate = (date) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -95,13 +96,8 @@ exports.uploadFiles = async (req, res) => {
 
     const io = req.app.get('io');
     io.to(`space_${spaceId}`).emit('new group message', populatedMessage);
-    io.emit('update last group message', {
-      spaceId,
-      userId: populatedMessage.userId,
-      message: populatedMessage.message,
-      files: populatedMessage.files, // ตรวจสอบว่าส่งข้อมูลไฟล์แนบไปด้วย
-      createdAt: populatedMessage.createdAt
-    });
+    io.emit('update last group message', populatedMessage);
+
 
     // Notify mentioned users
     if (mentionedUsers.length > 0) {
@@ -127,7 +123,6 @@ exports.renderChatPage = async (req, res) => {
   try {
     const spaceId = req.params.id;
 
-    // Get space, messages, and tasks in parallel
     const [space, messages, tasks] = await Promise.all([
       Spaces.findById(spaceId).populate('collaborators.user', 'firstName lastName profileImage').lean(),
       Chat.find({ spaceId, type: 'group' })
@@ -187,6 +182,9 @@ exports.renderChatPage = async (req, res) => {
       formatDate,
       formatTime,
       isNewDay,
+      convertToWebp,
+      resizeImage
+
     });
 
   } catch (error) {
@@ -536,11 +534,19 @@ exports.renderPrivateChatPage = async (req, res) => {
       ],
       type: 'private',
     })
-    .populate('userId', 'firstName lastName profileImage')
-    .populate('targetUserId', 'firstName lastName profileImage')
-    .populate('readBy', '_id') // ต้อง populate readBy ด้วย
-    .sort({ createdAt: 'asc' })
-    .lean();
+
+      .populate('userId', 'firstName lastName profileImage')
+      .populate('targetUserId', 'firstName lastName profileImage')
+      .populate('readBy', '_id') // ต้อง populate readBy ด้วย
+      .sort({ createdAt: 'asc' })
+      .lean();
+
+    console.log(`[RENDER] พบข้อความทั้งหมด ${messages.length} รายการ`);
+    messages.forEach(msg => {
+      console.log(`- ข้อความ ID: ${msg._id}, อ่านแล้วโดย:`,
+        msg.readBy.map(u => u._id),
+        `เนื้อหา: ${msg.message || '(ไม่มีข้อความ/มีไฟล์)'}`);
+    });
 
     // ดึงข้อความล่าสุดของแชทกลุ่ม (รวมข้อมูลไฟล์แนบ)
     const lastGroupMessage = await Chat.findOne({ spaceId, type: 'group' })
@@ -728,30 +734,38 @@ exports.markPrivateMessageAsRead = async (req, res) => {
     const userId = req.user.id;
     const targetUserId = req.params.targetUserId;
 
+    console.log(`[DEBUG] พยายามทำเครื่องหมายข้อความส่วนตัว ID: ${messageId} ว่าอ่านแล้วโดยผู้ใช้ ID: ${userId}`);
+
     const message = await Chat.findById(messageId)
       .populate('readBy', '_id')
       .populate('userId', '_id');
 
     if (!message) {
+      console.error(`[ERROR] ไม่พบข้อความ ID: ${messageId}`);
       return res.status(404).json({ success: false, error: "Message not found" });
     }
 
+    console.log(`[DEBUG] ข้อความก่อนอัปเดต - ID: ${message._id}, เนื้อหา: ${message.message || '(ไม่มีข้อความ/มีไฟล์)'}, readBy:`, message.readBy.map(u => u._id));
+
     // ตรวจสอบว่ายังไม่ได้อ่านและไม่ใช่ผู้ส่ง
-    if (!message.readBy.some(readUser => 
-      readUser._id.equals(userId)) && 
-      !message.userId._id.equals(userId)
-    ) {
+    if (!message.readBy.some(readUser => readUser._id.equals(userId))) {
       await Chat.findByIdAndUpdate(messageId, {
         $addToSet: { readBy: userId }
       });
 
+      console.log(`[DEBUG] เงื่อนไขการอัปเดต:
+        - ผู้ใช้เป็นผู้ส่ง: ${message.userId._id.equals(userId)} 
+        - ผู้ใช้อ่านแล้ว: ${message.readBy.some(u => u._id.equals(userId))}
+      `);
       // ดึงข้อมูลใหม่หลังจากอัพเดต
       const updatedMessage = await Chat.findById(messageId)
         .populate('readBy', '_id')
         .lean();
 
+      console.log(`[SUCCESS] อัปเดตข้อความสำเร็จ - ID: ${message._id}, readBy ใหม่:`, updatedMessage.readBy.map(u => u._id));
+
       // นับเฉพาะผู้อ่านที่ไม่ใช่ผู้ส่ง
-      const readCount = updatedMessage.readBy.filter(readUser => 
+      const readCount = updatedMessage.readBy.filter(readUser =>
         readUser._id && !readUser._id.equals(updatedMessage.userId._id)
       ).length;
 
@@ -764,10 +778,16 @@ exports.markPrivateMessageAsRead = async (req, res) => {
           readBy: updatedMessage.readBy.map(r => r._id.toString()),
           readByCount: readCount
         });
+    } else {
+      console.log(`[INFO] ข้อความ ID: ${message._id} ถูกอ่านแล้วโดยผู้ใช้ ID: ${userId} ไม่ต้องอัปเดต`);
+
     }
 
     res.status(200).json({ success: true });
+
   } catch (error) {
+    console.error(`[ERROR] เกิดข้อผิดพลาดในการทำเครื่องหมายข้อความว่าอ่านแล้ว:`, error);
+
     console.error("Error marking message as read:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
@@ -842,37 +862,37 @@ exports.markPrivateMessagesAsRead = async (req, res) => {
       targetUserId: userId,
       type: 'private'
     })
-    .populate('readBy', '_id')
-    .populate('userId', '_id');
+      .populate('readBy', '_id')
+      .populate('userId', '_id');
 
     // ส่งอัพเดตไปยังผู้ใช้ทั้งสองฝ่าย
     const io = req.app.get('io');
     updatedMessages.forEach(message => {
 
-      const readCount = message.readBy.filter(readUser => 
+      const readCount = message.readBy.filter(readUser =>
         readUser._id && !readUser._id.equals(message.userId._id)
       ).length;
-      
+
       io.to(`private_${targetUserId}_${userId}`).emit('private message read update', {
         messageId: message._id.toString(),
         readByCount: readCount
       });
-      
+
       io.to(`private_${userId}_${targetUserId}`).emit('private message read update', {
         messageId: message._id.toString(),
         readByCount: readCount
       });
     });
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
       updatedCount: result.modifiedCount
     });
   } catch (error) {
     console.error('Error marking private messages as read:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal Server Error' 
+    res.status(500).json({
+      success: false,
+      error: 'Internal Server Error'
     });
   }
 };

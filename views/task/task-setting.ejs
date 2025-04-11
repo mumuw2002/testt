@@ -17,8 +17,9 @@
         }
 
         .settingtask::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-}
+            display: none;
+            /* Chrome, Safari, Opera */
+        }
 
         h1 {
             font-size: 24px;
@@ -126,6 +127,70 @@
         button:hover {
             background-color: #e0e0e0;
         }
+
+        .delete-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .delete-btn {
+            background-color: #D04437;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #B83524;
+        }
+
+        /* สไตล์โมดอล */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 400px;
+            max-width: 80%;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-confirm {
+            background-color: #D04437;
+            color: white;
+            border: none;
+        }
+
+        .modal-cancel {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 
@@ -139,9 +204,10 @@
                 <form action="/space/item/<%= spaceId %>/setting" method="POST" enctype="multipart/form-data">
                     <div class="coverimg">
                         <div class="seccoverimg">
-                            <img id="cover-preview" src="<%= spaces.projectCover %>" alt="รูปปก">
-                            <input type="file" name="projectCover" id="projectCover" style="display: none;"
-                                accept="image/*">
+                            <img id="cover-preview" <img id="cover-preview"
+                                src="<%= spaces.projectCover || '/uploads/spacePictures/defultBackground.webp' %>"
+                                alt="รูปปก"> <input type="file" name="projectCover" id="projectCover"
+                                style="display: none;" accept="image/*">
                             <button type="button"
                                 onclick="document.getElementById('projectCover').click()">เปลี่ยนรูป</button>
                         </div>
@@ -174,9 +240,25 @@
                     </div>
                     <button type="submit">บันทึก</button>
                 </form>
+                <div class="delete-section">
+                    <h2>ลบโปรเจกต์</h2>
+                    <p>การลบโปรเจกต์จะลบข้อมูลทั้งหมดและไม่สามารถกู้คืนได้</p>
+                    <button class="delete-btn" onclick="showDeleteModal()">ลบโปรเจกต์</button>
+                </div>
             </div>
         </div>
 
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h2>ยืนยันการลบโปรเจกต์</h2>
+                <p>คุณแน่ใจหรือไม่ว่าต้องการลบโปรเจกต์นี้?
+                    การกระทำนี้ไม่สามารถยกเลิกได้และจะลบข้อมูลทั้งหมดในโปรเจกต์นี้</p>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-cancel" onclick="hideDeleteModal()">ยกเลิก</button>
+                    <button class="modal-btn modal-confirm" onclick="deleteSpace()">ลบโปรเจกต์</button>
+                </div>
+            </div>
+        </div>
 
         <script>
             document.getElementById('projectCover').addEventListener('change', function (event) {
@@ -185,6 +267,40 @@
                     document.getElementById('cover-preview').src = URL.createObjectURL(file);
                 }
             });
+
+            function showDeleteModal() {
+                document.getElementById('deleteModal').style.display = 'block';
+            }
+
+            function hideDeleteModal() {
+                document.getElementById('deleteModal').style.display = 'none';
+            }
+
+            async function deleteSpace() {
+                try {
+                    const response = await fetch(`/space/item/<%= spaceId %>/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        window.location.href = '/space';
+                    } else {
+                        alert(result.error || 'เกิดข้อผิดพลาดในการลบโปรเจกต์');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message);
+                } finally {
+                    hideDeleteModal();
+                }
+            }
+
         </script>
 
 </body>

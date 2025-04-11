@@ -1,0 +1,424 @@
+<style>
+    .user-info-container {
+        padding: 15px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        border: 4px solid #f0f0f0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .status {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .status.online {
+        background-color: #4CAF50;
+    }
+
+    .status.offline {
+        background-color: #9E9E9E;
+    }
+
+    .header h2 {
+        margin: 10px 0 5px;
+        font-size: 20px;
+    }
+
+    .email {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .status-text {
+        margin: 5px 0 0;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .status-text.online {
+        color: #4CAF50;
+    }
+
+    .status-text.offline {
+        color: #9E9E9E;
+    }
+
+    .details {
+        margin-top: 20px;
+    }
+
+    .section {
+        margin-bottom: 20px;
+    }
+
+    .section h3 {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-item {
+        display: flex;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #555;
+        width: 120px;
+    }
+
+    .value {
+        color: #333;
+        flex: 1;
+    }
+
+    .role {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .role.owner,
+    .role.admin {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .role.member {
+        background-color: #fce4ec;
+        color: #c2185b;
+    }
+
+    .role.guest {
+        background-color: #fff3e0;
+        color: #e65100;
+    }
+
+    .projects-list {
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        border-radius: 5px;
+        padding: 8px;
+    }
+
+    .project-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .project-item:last-child {
+        border-bottom: none;
+    }
+
+    .project-item i {
+        margin-right: 8px;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .project-item span {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    .project-item .role {
+        margin-left: 8px;
+    }
+
+    .assigned-tasks-container {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .task-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .task-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #f8f9fa;
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .task-project {
+        font-size: 13px;
+        color: #555;
+        font-weight: 500;
+    }
+
+    .task-status {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .task-name {
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .task-due {
+        font-size: 12px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+    }
+
+    .task-due i {
+        margin-right: 5px;
+        color: #888;
+    }
+
+    .task-due.no-due {
+        color: #9E9E9E;
+    }
+
+    .task-time {
+        margin-left: 8px;
+        padding-left: 8px;
+        border-left: 1px solid #ddd;
+    }
+
+    /* Status colors */
+    .task-item.toDo {
+        border-left: 4px solid #9E9E9E;
+    }
+
+    .task-item.inProgress {
+        border-left: 4px solid #2196F3;
+    }
+
+    .task-item.fix {
+        border-left: 4px solid #FF5722;
+    }
+
+    .task-item.finished {
+        border-left: 4px solid #4CAF50;
+    }
+
+    .toDo .task-status {
+        background-color: #e0e0e0;
+        color: #424242;
+    }
+
+    .inProgress .task-status {
+        background-color: #bbdefb;
+        color: #0d47a1;
+    }
+
+    .fix .task-status {
+        background-color: #ffcdd2;
+        color: #c62828;
+    }
+
+    .finished .task-status {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .progress-summary {
+        background-color: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: #4CAF50;
+        transition: width 0.3s ease;
+    }
+
+    .progress-summary {
+        background-color: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: #4CAF50;
+        transition: width 0.3s ease;
+    }
+</style>
+
+<div class="user-info-container">
+    <div class="header">
+        <div class="profile-img">
+            <img src="<%= user.profileImage %>" alt="Profile"
+                onerror="this.onerror=null; this.src='/public/img/profileImage/userDefalt.jpg';">
+            <span class="status <%= user.isOnline ? 'online' : 'offline' %>"></span>
+        </div>
+        <h2>
+            <%= user.username %>
+        </h2>
+        <p class="email">
+            <%= user.googleEmail %>
+        </p>
+        <p class="status-text <%= user.isOnline ? 'online' : 'offline' %>">
+            <%= user.isOnline ? 'ออนไลน์' : 'ออฟไลน์' %>
+        </p>
+    </div>
+
+    <div class="details">
+        <div class="section">
+            <h3>ข้อมูลทั่วไป</h3>
+            <div class="info-item">
+                <span class="label">ชื่อ:</span>
+                <span class="value">
+                    <%= user.firstName %>
+                        <%= user.lastName %>
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="label">อีเมล:</span>
+                <span class="value">
+                    <%= user.googleEmail %>
+                </span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>ข้อมูลในโปรเจกต์</h3>
+            <% if (collaborator) { %>
+                <div class="info-item">
+                    <span class="label">บทบาท:</span>
+                    <span class="value role <%= collaborator.role %>">
+                        <%= collaborator.role==='owner' ? 'เจ้าของ' : collaborator.role==='admin' ? 'ผู้ดูแล' :
+                            collaborator.role==='member' ? 'สมาชิก' : 'แขก' %>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">วันที่เข้าร่วมโปรเจกต์:</span>
+                    <span class="value">
+                        <%= new Date(collaborator.joinDate).toLocaleDateString('th-TH') %>
+                    </span>
+                </div>
+                <% } else { %>
+                    <p>ไม่พบข้อมูลในโปรเจกต์นี้</p>
+                    <% } %>
+        </div>
+
+        <div class="section">
+            <h3>งานที่ได้รับมอบหมายในโปรเจกต์นี้</h3>
+            <% if (tasksInThisProject.length> 0) { %>
+                <div class="progress-summary">
+                    <div class="progress-header">
+                        <span>ความคืบหน้างาน</span>
+                        <span>
+                            <%= completedTasks %>/<%= totalTasks %> งาน (<%= progressPercentage %>% เสร็จสมบูรณ์)
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= progressPercentage %>%"></div>
+                    </div>
+                </div>
+                <div class="assigned-tasks-container">
+                    <% tasksInThisProject.forEach(task=> { %>
+                        <div class="task-item <%= task.taskStatus %>"
+                            onclick="window.location.href='/task/<%= task.id %>/detail'" style="cursor: pointer;">
+                            <div class="task-header">
+                                <span class="task-project">
+                                    <%= task.projectName %>
+                                </span>
+                                <span class="task-status <%= task.taskStatus %>">
+                                    <%= task.taskStatus==='toDo' ? 'ยังไม่เริ่ม' : task.taskStatus==='inProgress'
+                                        ? 'กำลังทำ' : task.taskStatus==='fix' ? 'ต้องแก้ไข' :
+                                        task.taskStatus==='finished' ? 'เสร็จสิ้น' : task.taskStatus %>
+                                </span>
+                            </div>
+                            <div class="task-name">
+                                <%= task.taskName %>
+                            </div>
+                            <div class="task-due">
+                                <i class="far fa-calendar-alt"></i>
+                                <% if (task.dueDate) { %>
+                                    Due: <%= new Date(task.dueDate).toLocaleDateString('th-TH') %>
+                                        <% } else { %>
+                                            ไม่มีกำหนดสิ้นสุด
+                                            <% } %>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+                <% } else { %>
+                    <p>ไม่มีงานที่มอบหมายให้คุณในโปรเจกต์นี้</p>
+                    <% } %>
+        </div>
+    </div>
+</div>
